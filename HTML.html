@@ -1,0 +1,4487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fluid Precision — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --black: #0A0A0A;
+    --red: #E63946;
+    --silver: #C0C0C0;
+    --syncopate: 'Syncopate', sans-serif;
+    --inter: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--black);
+    color: var(--silver);
+    font-family: var(--inter);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; background: none; border: 0; cursor: pointer; color: inherit; }
+
+  /* ====================== NAVBAR ====================== */
+  .nav {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1200px, calc(100% - 32px));
+    height: 72px;
+    z-index: 9999;
+    border-radius: 32px;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(192, 192, 192, 0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav.scrolled { height: 60px; }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 28px;
+  }
+  .logo { display: flex; align-items: center; height: 24px; }
+  .logo svg { height: 22px; width: auto; }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-link {
+    position: relative;
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+    transition: color 0.25s ease;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 1px;
+    background: var(--red);
+    transform: scaleX(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-link:hover { color: var(--red); }
+  .nav-link:hover::after { transform: scaleX(1); }
+
+  .cta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    color: #fff;
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: var(--red);
+    border-radius: 32px;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  .cta-pill:hover {
+    box-shadow: 0 0 28px rgba(230,57,70,0.5), 0 0 48px rgba(230,57,70,0.25);
+    transform: translateY(-1px);
+  }
+
+  .hamburger { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; }
+  .hamburger svg { width: 24px; height: 24px; }
+  .ham-line { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: 12px 12px; }
+  .hamburger[data-open="true"] .ham-line.top { transform: translateY(0) rotate(45deg); }
+  .hamburger[data-open="true"] .ham-line.bottom { transform: translateY(0) rotate(-45deg); }
+  .ham-line.top { transform: translateY(-4px); }
+  .ham-line.bottom { transform: translateY(4px); }
+
+  /* Mobile overlay */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(45px);
+    -webkit-backdrop-filter: blur(45px);
+    display: none;
+    flex-direction: column;
+    padding: 96px 32px 40px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .mobile-menu.open { display: flex; opacity: 1; }
+  .mobile-links {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    list-style: none;
+  }
+  .mobile-link {
+    font-family: var(--syncopate);
+    font-size: 24px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+    opacity: 0;
+    transform: translateY(24px);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .mobile-menu.open .mobile-link:nth-child(1) { animation-delay: 0.10s; }
+  .mobile-menu.open .mobile-link:nth-child(2) { animation-delay: 0.15s; }
+  .mobile-menu.open .mobile-link:nth-child(3) { animation-delay: 0.20s; }
+  .mobile-menu.open .mobile-link:nth-child(4) { animation-delay: 0.25s; }
+  .mobile-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 18px;
+    color: #fff;
+    font-family: var(--syncopate);
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: var(--red);
+    border-radius: 32px;
+    box-shadow: 0 0 32px rgba(230,57,70,0.4);
+    opacity: 0;
+    transform: translateY(24px);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.30s forwards;
+  }
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====================== HERO ====================== */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    width: 100%;
+    overflow: hidden;
+    background: var(--black);
+  }
+  /* Video stand-in: cinematic gradient mocks reflective gloss */
+  .hero-canvas {
+    position: absolute; inset: 0; z-index: -30;
+    background:
+      radial-gradient(ellipse 60% 40% at 70% 50%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 80% 60% at 80% 70%, rgba(230,57,70,0.18) 0%, rgba(230,57,70,0) 70%),
+      radial-gradient(ellipse 50% 80% at 90% 30%, rgba(180,200,255,0.10) 0%, rgba(180,200,255,0) 70%),
+      linear-gradient(135deg, #050505 0%, #1a1a1a 50%, #0a0a0a 100%);
+  }
+  .hero-canvas::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%),
+      linear-gradient(115deg, transparent 60%, rgba(230,57,70,0.12) 70%, transparent 80%);
+  }
+  .hero-overlay {
+    position: absolute; inset: 0; z-index: -20;
+    background: linear-gradient(90deg,
+      rgba(10,10,10,0.85) 0%,
+      rgba(10,10,10,0.7) 35%,
+      rgba(10,10,10,0.25) 70%,
+      rgba(10,10,10,0) 100%);
+    pointer-events: none;
+  }
+  .hero-mesh {
+    position: absolute; inset: 0; z-index: -20;
+    background:
+      radial-gradient(60% 50% at 15% 65%, rgba(230,57,70,0.10) 0%, rgba(230,57,70,0) 70%),
+      radial-gradient(45% 40% at 85% 25%, rgba(230,57,70,0.06) 0%, rgba(230,57,70,0) 70%);
+    pointer-events: none;
+  }
+  .hero-grain {
+    position: absolute; inset: 0; z-index: -10;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+  .hero-bottom-fade {
+    position: absolute; inset: auto 0 0 0; height: 128px; z-index: -10;
+    background: linear-gradient(180deg, rgba(10,10,10,0) 0%, #0A0A0A 100%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative; z-index: 10;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 160px 40px 112px;
+  }
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 8px 16px;
+    border: 1px solid rgba(192,192,192,0.2);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 999px;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+    opacity: 0;
+    transform: translateY(28px);
+    animation: heroIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.20s forwards;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  .h1 {
+    max-width: 18ch;
+    font-family: var(--syncopate);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 7vw, 6rem);
+    line-height: 0.95;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 45%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+    text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+    opacity: 0;
+    transform: translateY(28px);
+    animation: heroIn 0.8s cubic-bezier(0.22,1,0.36,1) 0.32s forwards;
+  }
+  .h1 .accent {
+    background: linear-gradient(180deg, #FFFFFF 0%, #E63946 60%, #8A1F26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub {
+    margin-top: 24px;
+    max-width: 44ch;
+    font-family: var(--inter);
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+    opacity: 0;
+    transform: translateY(28px);
+    animation: heroIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.44s forwards;
+  }
+
+  .ctas {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    margin-top: 40px;
+    opacity: 0;
+    transform: translateY(28px);
+    animation: heroIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.56s forwards;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 28px;
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border-radius: 32px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  .btn-primary {
+    color: #fff;
+    background: var(--red);
+    box-shadow: 0 0 0 rgba(230,57,70,0);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 32px rgba(230,57,70,0.7), 0 0 64px rgba(230,57,70,0.35), 0 8px 24px rgba(0,0,0,0.4);
+    transform: translateY(-2px) scale(1.02);
+  }
+  .btn-primary .arrow { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  .btn-primary:hover .arrow { transform: translateX(4px); }
+  .btn-secondary {
+    color: var(--silver);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(192,192,192,0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .btn-secondary:hover {
+    border-color: rgba(192,192,192,0.7);
+    background: rgba(255,255,255,0.07);
+    transform: translateY(-2px);
+  }
+
+  .trust {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 12px 32px;
+    margin-top: 56px;
+    font-family: var(--inter);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(192,192,192,0.6);
+    opacity: 0;
+    transform: translateY(28px);
+    animation: heroIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.68s forwards;
+  }
+  .trust .item { display: inline-flex; align-items: center; gap: 8px; }
+  .trust .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  @keyframes heroIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====================== RESPONSIVE ====================== */
+  @media (max-width: 768px) {
+    .nav-links, .nav-cta-desktop { display: none; }
+    .hamburger { display: inline-flex; }
+    .nav-inner { padding: 0 20px; }
+
+    .hero-inner { padding: 128px 24px 80px; }
+    .hero-content { align-items: center; text-align: center; }
+    .h1 { letter-spacing: 3px; }
+    .ctas { flex-direction: column; width: 100%; }
+    .btn { width: 100%; padding: 18px 24px; }
+    .trust { justify-content: center; }
+  }
+
+  /* ====================== SERVICES ====================== */
+  .services {
+    position: relative;
+    overflow: hidden;
+    padding: 128px 0;
+    background: var(--black);
+  }
+  .services-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(45% 45% at 50% 30%, rgba(230,57,70,0.07) 0%, rgba(230,57,70,0) 70%);
+  }
+  .services-grain {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.025;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+  .services-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .services-header { text-align: center; margin-bottom: 80px; }
+  .services-h2 {
+    max-width: 20ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .services-sub {
+    max-width: 56ch;
+    margin: 20px auto 0;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+  }
+
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    align-items: stretch;
+  }
+  .pkg-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(192,192,192,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), backdrop-filter 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  }
+  .pkg-card:hover {
+    transform: translateY(-5px);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 24px rgba(230,57,70,0.12);
+  }
+  .pkg-card.popular {
+    border-color: rgba(230,57,70,0.4);
+    box-shadow: 0 0 40px rgba(230,57,70,0.2), 0 0 80px rgba(230,57,70,0.1), 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .pkg-card.popular:hover {
+    box-shadow: 0 0 56px rgba(230,57,70,0.33), 0 0 96px rgba(230,57,70,0.15), 0 16px 48px rgba(0,0,0,0.5);
+  }
+  .pkg-badge {
+    position: absolute;
+    left: 50%;
+    top: -14px;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: var(--red);
+    color: #fff;
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    box-shadow: 0 0 24px rgba(230,57,70,0.5);
+    white-space: nowrap;
+  }
+  .pkg-name {
+    font-family: var(--syncopate);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .pkg-tagline {
+    margin-top: 4px;
+    font-family: var(--inter);
+    font-size: 13px;
+    color: rgba(160,160,160,0.85);
+  }
+  .pkg-price {
+    display: block;
+    margin: 24px 0 20px;
+    font-family: var(--syncopate);
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .pkg-card.popular .pkg-price {
+    background: linear-gradient(180deg, #FFFFFF 0%, #E63946 60%, #8A1F26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .pkg-duration {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    padding: 6px 14px;
+    background: rgba(230,57,70,0.08);
+    border: 1px solid rgba(230,57,70,0.25);
+    border-radius: 32px;
+    font-family: var(--inter);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--silver);
+  }
+  .pkg-duration svg { color: var(--red); }
+  .pkg-features {
+    list-style: none;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pkg-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: var(--inter);
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(192,192,192,0.92);
+    opacity: 0;
+    transform: scale(0.4);
+    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .pkg-card .pkg-feature:nth-child(1) { animation-delay: 0.40s; }
+  .pkg-card .pkg-feature:nth-child(2) { animation-delay: 0.48s; }
+  .pkg-card .pkg-feature:nth-child(3) { animation-delay: 0.56s; }
+  .pkg-card .pkg-feature:nth-child(4) { animation-delay: 0.64s; }
+  .pkg-card .pkg-feature:nth-child(5) { animation-delay: 0.72s; }
+  .pkg-check {
+    flex-shrink: 0;
+    margin-top: 2px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(230,57,70,0.12);
+    border: 1px solid rgba(230,57,70,0.33);
+  }
+  .pkg-check svg { color: var(--red); }
+  @keyframes checkPop {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .pkg-cta {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .pkg-cta.glass {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(192,192,192,0.2);
+    color: var(--silver);
+    backdrop-filter: blur(12px);
+  }
+  .pkg-cta.glass:hover {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(192,192,192,0.5);
+  }
+  .pkg-cta.solid {
+    background: var(--red);
+    color: #fff;
+  }
+  .pkg-cta.solid:hover {
+    box-shadow: 0 0 32px rgba(230,57,70,0.67), 0 0 64px rgba(230,57,70,0.33);
+    transform: translateY(-1px);
+  }
+  .pkg-cta.outline {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(192,192,192,0.4);
+    color: var(--silver);
+    backdrop-filter: blur(12px);
+  }
+  .pkg-cta.outline:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(192,192,192,0.8);
+  }
+
+  .services-note {
+    max-width: 56ch;
+    margin: 48px auto 0;
+    text-align: center;
+    font-family: var(--inter);
+    font-style: italic;
+    font-size: 12px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.7);
+  }
+
+  @media (max-width: 900px) {
+    .pkg-grid {
+      grid-template-columns: repeat(3, 88%);
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 16px 24px 24px;
+      margin: 0 -24px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pkg-grid::-webkit-scrollbar { display: none; }
+    .pkg-card { scroll-snap-align: center; }
+    .services { padding: 96px 0; }
+    .services-inner { padding: 0 24px; }
+  }
+
+  /* ====================== PORTFOLIO ====================== */
+  .portfolio {
+    position: relative;
+    overflow: hidden;
+    padding: 144px 0;
+    background: var(--black);
+  }
+  .pf-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(50% 40% at 80% 20%, rgba(230,57,70,0.08) 0%, rgba(230,57,70,0) 70%),
+      radial-gradient(40% 35% at 15% 80%, rgba(230,57,70,0.05) 0%, rgba(230,57,70,0) 70%);
+  }
+  .pf-grain {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.025; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+  .pf-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .pf-header { text-align: center; margin-bottom: 80px; }
+  .pf-h2 {
+    max-width: 20ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .pf-sub {
+    max-width: 60ch;
+    margin: 20px auto 0;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+  }
+
+  .ba-slider {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 32px;
+    border: 1px solid rgba(192,192,192,0.2);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.02);
+    overflow: hidden;
+    background: #0A0A0A;
+    cursor: ew-resize;
+    user-select: none;
+    touch-action: none;
+    transition: filter 0.4s ease, box-shadow 0.4s ease;
+  }
+  .ba-slider.dragging { cursor: grabbing; }
+
+  /* Mock images via gradient (no external assets) */
+  .ba-img {
+    position: absolute; inset: 0;
+    transition: filter 0.4s ease;
+  }
+  .ba-img.after {
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 60%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 30% 50% at 30% 40%, rgba(180,210,255,0.18) 0%, rgba(180,210,255,0) 60%),
+      radial-gradient(ellipse 40% 60% at 75% 70%, rgba(230,57,70,0.22) 0%, rgba(230,57,70,0) 60%),
+      linear-gradient(135deg, #0a0a14 0%, #1a1f2e 40%, #0d0d12 100%);
+  }
+  .ba-img.after::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.10) 50%, transparent 65%),
+      linear-gradient(115deg, transparent 60%, rgba(230,57,70,0.18) 72%, transparent 84%);
+  }
+  .ba-img.before {
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 60%, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(135deg, #1c1812 0%, #2a2520 40%, #1a1612 100%);
+    filter: saturate(0.6) brightness(0.75) contrast(0.85);
+  }
+  .ba-img.before::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='d'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0 0.2  0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23d)'/></svg>");
+    background-size: 180px 180px;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+  }
+  .ba-before-wrap {
+    position: absolute; inset: 0;
+  }
+  .ba-slider:hover .ba-img,
+  .ba-slider.dragging .ba-img {
+    filter: contrast(1.08) saturate(1.06);
+  }
+  .ba-slider:hover .ba-img.before,
+  .ba-slider.dragging .ba-img.before {
+    filter: saturate(0.7) brightness(0.8) contrast(0.95);
+  }
+
+  .ba-label {
+    position: absolute;
+    top: 24px;
+    z-index: 2;
+    padding: 6px 14px;
+    background: rgba(10,10,10,0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(192,192,192,0.15);
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+    pointer-events: none;
+  }
+  .ba-label.before { left: 24px; }
+  .ba-label.after { right: 24px; color: #fff; }
+
+  .ba-handle {
+    position: absolute;
+    top: 0; bottom: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .ba-line {
+    position: absolute;
+    top: 0; bottom: 0; left: 50%;
+    width: 2px;
+    transform: translateX(-1px);
+    background: var(--red);
+    box-shadow: 0 0 16px rgba(230,57,70,0.6), 0 0 32px rgba(230,57,70,0.4);
+  }
+  .ba-knob {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #f5f5f5 0%, #c0c0c0 50%, #8a8a8a 100%);
+    border: 2px solid var(--red);
+    color: #0A0A0A;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    pointer-events: auto;
+    box-shadow: 0 0 0 6px rgba(230,57,70,0.18), 0 0 24px rgba(230,57,70,0.5), 0 8px 20px rgba(0,0,0,0.5);
+    animation: knobPulse 2.4s ease-in-out infinite;
+  }
+  .ba-knob:active { cursor: grabbing; animation: none; }
+  @keyframes knobPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 6px rgba(230,57,70,0.18), 0 0 24px rgba(230,57,70,0.5), 0 8px 20px rgba(0,0,0,0.5);
+    }
+    50% {
+      box-shadow: 0 0 0 14px rgba(230,57,70,0), 0 0 36px rgba(230,57,70,0.8), 0 8px 20px rgba(0,0,0,0.5);
+    }
+  }
+
+  .pf-info {
+    max-width: 760px;
+    margin: 24px auto 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 16px 20px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .pf-info span {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(192,192,192,0.7);
+  }
+  .pf-info .val { color: var(--silver); }
+  .pf-info .val-red { color: var(--red); }
+  .pf-info .sep { color: rgba(192,192,192,0.25); }
+
+  .pf-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .pf-tab {
+    padding: 10px 18px;
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: 1px solid rgba(192,192,192,0.2);
+    background: rgba(255,255,255,0.03);
+    color: var(--silver);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .pf-tab:hover { border-color: rgba(230,57,70,0.5); color: var(--red); }
+  .pf-tab.active {
+    border-color: var(--red);
+    background: rgba(230,57,70,0.1);
+    color: var(--red);
+    box-shadow: 0 0 24px rgba(230,57,70,0.25);
+  }
+
+  @media (max-width: 768px) {
+    .portfolio { padding: 96px 0; }
+    .pf-inner { padding: 0 24px; }
+    .ba-knob { width: 44px; height: 44px; }
+    .ba-label { top: 16px; font-size: 9px; padding: 5px 10px; }
+    .ba-label.before { left: 16px; }
+    .ba-label.after { right: 16px; }
+    .pf-info { flex-direction: column; gap: 8px; }
+    .pf-info .sep { display: none; }
+  }
+
+  /* ====================== TESTIMONIALS ====================== */
+  .testimonials {
+    position: relative;
+    overflow: hidden;
+    padding: 144px 0;
+    background: var(--black);
+  }
+  .t-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(50% 40% at 20% 30%, rgba(230,57,70,0.06) 0%, rgba(230,57,70,0) 70%),
+      radial-gradient(45% 35% at 85% 70%, rgba(230,57,70,0.05) 0%, rgba(230,57,70,0) 70%);
+  }
+  .t-grain {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.025; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+  .t-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .t-header { text-align: center; margin-bottom: 80px; }
+  .t-h2 {
+    max-width: 20ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .t-sub {
+    max-width: 60ch;
+    margin: 20px auto 0;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+  }
+
+  .t-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  .tcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 32px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(192,192,192,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    opacity: 0;
+    transform: translateY(32px);
+    animation: tCardIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+  }
+  .tcard:nth-child(1) { animation-delay: 0.10s; }
+  .tcard:nth-child(2) { animation-delay: 0.25s; }
+  .tcard:nth-child(3) { animation-delay: 0.40s; }
+  @keyframes tCardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tcard:hover {
+    transform: scale(1.02);
+    border-color: rgba(230,57,70,0.4);
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 0 32px rgba(230,57,70,0.2), 0 0 64px rgba(230,57,70,0.1), 0 16px 48px rgba(0,0,0,0.5);
+  }
+
+  .tcard-quote-glyph {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    color: var(--silver);
+    opacity: 0.15;
+  }
+
+  .tcard-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tcard-stars svg {
+    fill: var(--red);
+    filter: drop-shadow(0 0 6px rgba(230,57,70,0.5));
+  }
+
+  .tcard-quote {
+    margin-top: 24px;
+    flex: 1;
+    font-family: var(--inter);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(240,240,240,0.92);
+  }
+
+  .tcard-footer {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(192,192,192,0.12);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .tcard-identity { flex: 1; }
+  .tcard-name {
+    font-family: var(--syncopate);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .tcard-role {
+    margin-top: 4px;
+    font-family: var(--inter);
+    font-size: 12px;
+    color: rgba(160,160,160,0.85);
+  }
+  .tcard-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(192,192,192,0.06);
+    border: 1px solid rgba(192,192,192,0.15);
+    border-radius: 32px;
+    font-family: var(--inter);
+    font-size: 10px;
+    color: rgba(192,192,192,0.85);
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .tcard-verified svg { color: var(--silver); }
+
+  .t-track {
+    display: none;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 24px 24px;
+    margin: 0 -24px;
+  }
+  .t-track::-webkit-scrollbar { display: none; }
+  .tcard-slide { flex-shrink: 0; width: 85%; scroll-snap-align: center; }
+
+  .t-nav {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .t-arrow {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(192,192,192,0.2);
+    color: var(--silver);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .t-arrow:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(230,57,70,0.08);
+    box-shadow: 0 0 20px rgba(230,57,70,0.33);
+  }
+  .t-arrow:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    .testimonials { padding: 96px 0; }
+    .t-inner { padding: 0 24px; }
+    .t-grid { display: none; }
+    .t-track { display: flex; }
+    .t-nav { display: flex; }
+  }
+
+  /* ====================== BOOKING ====================== */
+  .booking {
+    position: relative;
+    overflow: hidden;
+    padding: 128px 0;
+    background: var(--black);
+  }
+  .bk-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(50% 40% at 50% 20%, rgba(230,57,70,0.08) 0%, rgba(230,57,70,0) 70%);
+  }
+  .bk-inner {
+    position: relative;
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .bk-header { text-align: center; margin-bottom: 40px; }
+  .bk-h2 {
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3rem);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bk-sub {
+    font-family: var(--inter);
+    color: rgba(160,160,160,0.9);
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  .bk-card {
+    position: relative;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.2);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .bk-progress {
+    position: relative;
+    height: 3px;
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+  }
+  .bk-progress-bar {
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    width: 20%;
+    background: var(--red);
+    box-shadow: 0 0 16px var(--red);
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .bk-stepbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px 0;
+  }
+  .bk-steps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bk-step-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(192,192,192,0.25);
+    color: rgba(192,192,192,0.5);
+    font-family: var(--syncopate);
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .bk-step-dot.done, .bk-step-dot.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .bk-step-line {
+    width: 24px;
+    height: 1px;
+    background: rgba(192,192,192,0.15);
+  }
+  .bk-step-line.done { background: var(--red); }
+
+  .bk-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: rgba(192,192,192,0.7);
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .bk-back:hover { color: var(--silver); }
+
+  .bk-body {
+    position: relative;
+    padding: 32px 40px;
+    min-height: 460px;
+  }
+  .bk-step {
+    display: none;
+    animation: bkSlideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .bk-step.active { display: block; }
+  @keyframes bkSlideIn {
+    from { opacity: 0; transform: translateX(40px); filter: blur(6px); }
+    to { opacity: 1; transform: translateX(0); filter: blur(0); }
+  }
+
+  .bk-kicker {
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .bk-step-title {
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 32px;
+  }
+
+  .bk-label {
+    display: block;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(192,192,192,0.7);
+    margin-bottom: 8px;
+  }
+  .bk-input {
+    width: 100%;
+    padding: 16px 18px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    border-radius: 16px;
+    color: var(--silver);
+    font-family: var(--inter);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .bk-input::placeholder { color: rgba(192,192,192,0.35); }
+  .bk-input:focus {
+    border-color: var(--red);
+    background: rgba(230,57,70,0.04);
+  }
+  .bk-input.with-icon { padding-left: 44px; }
+  .bk-input-wrap { position: relative; }
+  .bk-input-wrap .bk-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--red);
+  }
+
+  /* Vehicle tiles */
+  .bk-vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .bk-vehicle {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    color: var(--silver);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bk-vehicle:hover { border-color: rgba(192,192,192,0.4); background: rgba(255,255,255,0.05); }
+  .bk-vehicle.active {
+    border-color: var(--red);
+    background: rgba(230,57,70,0.08);
+    color: var(--red);
+    box-shadow: 0 0 28px rgba(230,57,70,0.2);
+  }
+  .bk-vehicle-label {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .bk-vehicle-add {
+    font-family: var(--inter);
+    font-size: 11px;
+    color: rgba(192,192,192,0.5);
+  }
+  .bk-vehicle.active .bk-vehicle-add { color: var(--red); }
+
+  .bk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+
+  .bk-customized {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 6px 16px;
+    background: rgba(230,57,70,0.08);
+    border: 1px solid rgba(230,57,70,0.25);
+    border-radius: 999px;
+    font-family: var(--inter);
+    font-size: 11px;
+    color: var(--silver);
+    letter-spacing: 1px;
+  }
+  .bk-customized svg { color: var(--red); }
+
+  /* Package tiles */
+  .bk-pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .bk-pkg {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bk-pkg:hover { border-color: rgba(192,192,192,0.4); background: rgba(255,255,255,0.05); }
+  .bk-pkg.active {
+    border-color: var(--red);
+    background: rgba(230,57,70,0.06);
+    box-shadow: 0 0 32px rgba(230,57,70,0.2);
+  }
+  .bk-pkg-name {
+    font-family: var(--syncopate);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .bk-pkg.active .bk-pkg-name { color: var(--red); }
+  .bk-pkg-desc { font-family: var(--inter); font-size: 12px; color: rgba(160,160,160,0.85); margin-top: 4px; }
+  .bk-pkg-price {
+    margin-top: 16px;
+    font-family: var(--syncopate);
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bk-pkg.active .bk-pkg-price {
+    background: linear-gradient(180deg, #FFFFFF 0%, #E63946 60%, #8A1F26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .bk-pkg-dur { margin-top: 8px; font-family: var(--inter); font-size: 11px; color: rgba(192,192,192,0.6); }
+
+  /* Addon tiles */
+  .bk-addon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bk-addon {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bk-addon:hover { border-color: rgba(192,192,192,0.4); }
+  .bk-addon.active {
+    border-color: var(--red);
+    background: rgba(230,57,70,0.06);
+  }
+  .bk-checkbox {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(192,192,192,0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .bk-addon.active .bk-checkbox {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .bk-checkbox svg { color: #fff; opacity: 0; transition: opacity 0.2s; }
+  .bk-addon.active .bk-checkbox svg { opacity: 1; }
+  .bk-addon-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .bk-addon-name {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .bk-addon-price {
+    font-family: var(--syncopate);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--red);
+  }
+  .bk-addon-desc { font-family: var(--inter); font-size: 12px; color: rgba(192,192,192,0.7); margin-top: 4px; line-height: 1.5; }
+
+  /* Schedule */
+  .bk-suggestions {
+    position: absolute;
+    left: 0; right: 0;
+    margin-top: 8px;
+    background: rgba(15,15,15,0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(192,192,192,0.2);
+    border-radius: 20px;
+    padding: 8px;
+    z-index: 10;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    display: none;
+  }
+  .bk-suggestions.open { display: block; }
+  .bk-sugg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    color: var(--silver);
+    font-family: var(--inter);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .bk-sugg-item:hover { background: rgba(230,57,70,0.08); }
+  .bk-sugg-item svg { color: var(--red); }
+
+  .bk-days {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .bk-days::-webkit-scrollbar { display: none; }
+  .bk-day {
+    flex-shrink: 0;
+    min-width: 64px;
+    padding: 12px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    color: var(--silver);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s;
+  }
+  .bk-day:hover { border-color: rgba(192,192,192,0.4); }
+  .bk-day.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .bk-day-wd { font-family: var(--inter); font-size: 10px; opacity: 0.75; text-transform: uppercase; letter-spacing: 1px; }
+  .bk-day-num { font-family: var(--syncopate); font-size: 18px; font-weight: 700; margin-top: 4px; }
+  .bk-day-mo { font-family: var(--inter); font-size: 9px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+
+  .bk-times { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .bk-time {
+    padding: 12px 0;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(192,192,192,0.15);
+    color: var(--silver);
+    cursor: pointer;
+    font-family: var(--inter);
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+  }
+  .bk-time:hover { border-color: rgba(192,192,192,0.4); }
+  .bk-time.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* Confirm */
+  .bk-summary {
+    margin-top: 28px;
+    padding: 24px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(192,192,192,0.15);
+  }
+  .bk-summary-title {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 14px;
+  }
+  .bk-summary-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: var(--inter);
+    font-size: 13px;
+    color: var(--silver);
+  }
+  .bk-summary-list li { display: flex; justify-content: space-between; }
+  .bk-summary-total {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(192,192,192,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .bk-summary-total-label {
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--silver);
+    text-transform: uppercase;
+  }
+  .bk-summary-total-val {
+    font-family: var(--syncopate);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--red);
+  }
+
+  /* Bottom bar */
+  .bk-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-top: 1px solid rgba(192,192,192,0.12);
+    background: rgba(0,0,0,0.4);
+    gap: 16px;
+  }
+  .bk-bottom-info { display: flex; flex-direction: column; gap: 2px; }
+  .bk-bottom-label {
+    font-family: var(--syncopate);
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(192,192,192,0.6);
+    text-transform: uppercase;
+  }
+  .bk-bottom-summary { font-family: var(--inter); font-size: 13px; color: var(--silver); }
+  .bk-bottom-right { display: flex; align-items: center; gap: 24px; }
+  .bk-total-block { display: flex; flex-direction: column; align-items: flex-end; }
+  .bk-total-val {
+    font-family: var(--syncopate);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--red);
+  }
+  .bk-total-dur { font-family: var(--inter); font-size: 11px; color: rgba(192,192,192,0.6); }
+  .bk-skip {
+    display: none;
+    background: none;
+    border: 0;
+    color: rgba(192,192,192,0.6);
+    font-family: var(--inter);
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+  .bk-skip:hover { color: var(--silver); }
+  .bk-step.active[data-step="2"] ~ * .bk-skip { display: inline; }
+
+  .bk-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(192,192,192,0.25);
+    color: var(--silver);
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bk-next.solid { background: var(--red); color: #fff; border-color: transparent; }
+  .bk-next.solid:hover { box-shadow: 0 0 28px rgba(230,57,70,0.6); transform: translateY(-1px); }
+  .bk-next:hover { border-color: rgba(192,192,192,0.5); }
+  .bk-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .bk-next.solid:not(:disabled) { animation: bkPulse 2.4s ease-in-out infinite; }
+  @keyframes bkPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.33); }
+    50% { box-shadow: 0 0 24px rgba(230,57,70,0.6); }
+  }
+
+  /* Success overlay */
+  .bk-success {
+    position: fixed; inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(45px);
+    -webkit-backdrop-filter: blur(45px);
+  }
+  .bk-success.open { display: flex; animation: bkFade 0.3s ease; }
+  @keyframes bkFade { from { opacity: 0; } to { opacity: 1; } }
+  .bk-success-card {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    padding: 40px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(230,57,70,0.4);
+    box-shadow: 0 0 80px rgba(230,57,70,0.27);
+    animation: bkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes bkPop {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .bk-success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: var(--red);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 0 40px rgba(230,57,70,0.67);
+  }
+  .bk-success-title {
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 12px;
+  }
+  .bk-success-msg {
+    font-family: var(--inter);
+    font-size: 14px;
+    color: rgba(192,192,192,0.85);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .bk-success-meta {
+    font-family: var(--syncopate);
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--red);
+    margin-bottom: 28px;
+  }
+  .bk-success-actions { display: flex; flex-direction: row; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .bk-success-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid;
+    text-decoration: none;
+  }
+  .bk-success-btn.glass {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(192,192,192,0.25);
+    color: var(--silver);
+  }
+  .bk-success-btn.solid {
+    background: var(--red);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    .booking { padding: 96px 0; }
+    .bk-stepbar { padding: 16px 20px 0; }
+    .bk-step-line { display: none; }
+    .bk-body { padding: 24px 20px; }
+    .bk-vehicle-grid { grid-template-columns: repeat(2, 1fr); }
+    .bk-pkg-grid { grid-template-columns: 1fr; }
+    .bk-row { grid-template-columns: 1fr; }
+    .bk-addon-grid { grid-template-columns: 1fr; }
+    .bk-times { grid-template-columns: repeat(3, 1fr); }
+    .bk-bottom { flex-direction: column; align-items: stretch; padding: 16px 20px; }
+    .bk-bottom-right { justify-content: space-between; }
+    .bk-next { justify-content: center; }
+  }
+
+  /* ====================== SERVICE AREA ====================== */
+  .sa {
+    position: relative;
+    overflow: hidden;
+    padding: 144px 0;
+    background: var(--black);
+  }
+  .sa-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(60% 50% at 50% 30%, rgba(230,57,70,0.07) 0%, rgba(230,57,70,0) 70%);
+  }
+  .sa-inner {
+    position: relative;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .sa-header {
+    display: grid;
+    gap: 32px;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    margin-bottom: 64px;
+  }
+  .sa-kicker {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .sa-h2 {
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sa-sub {
+    max-width: 52ch;
+    margin-top: 20px;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+  }
+  .sa-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    list-style: none;
+    font-family: var(--inter);
+    font-size: 12px;
+    color: rgba(192,192,192,0.7);
+  }
+  .sa-meta li { display: inline-flex; align-items: center; gap: 8px; }
+  .sa-meta .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+  }
+
+  .sa-frame {
+    position: relative;
+    border-radius: 32px;
+    border: 1px solid rgba(192,192,192,0.15);
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    min-height: 420px;
+  }
+
+  /* Mock dark map */
+  .sa-map {
+    position: absolute; inset: 0;
+    background: #0A0A0A;
+    overflow: hidden;
+  }
+  .sa-map-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 50% 40% at 35% 60%, rgba(15,15,18,1) 0%, rgba(8,8,10,1) 70%),
+      linear-gradient(180deg, #050507 0%, #0a0a0c 100%);
+  }
+  /* Coastline mock — water on right */
+  .sa-water {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    width: 38%;
+    background: #000;
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 8% 100%, 14% 80%, 4% 60%, 12% 40%, 2% 20%);
+  }
+  /* Roads grid */
+  .sa-roads {
+    position: absolute; inset: 0;
+    opacity: 0.55;
+    background-image:
+      linear-gradient(90deg, rgba(192,192,192,0.18) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(192,192,192,0.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192,192,192,0.08) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(192,192,192,0.08) 1px, transparent 1px);
+    background-size: 200px 200px, 200px 200px, 50px 50px, 50px 50px;
+  }
+  /* Highway diagonals */
+  .sa-highway {
+    position: absolute;
+    height: 1.5px;
+    background: rgba(192,192,192,0.3);
+    transform-origin: left center;
+  }
+  .sa-highway.h1 { top: 30%; left: 0; right: 30%; transform: rotate(-8deg); }
+  .sa-highway.h2 { top: 65%; left: 0; right: 35%; transform: rotate(5deg); }
+  .sa-highway.h3 { top: 50%; left: 5%; right: 40%; transform: rotate(-12deg); height: 2px; background: rgba(192,192,192,0.4); }
+
+  /* Service zone radius ring */
+  .sa-zone {
+    position: absolute;
+    top: 50%; left: 38%;
+    width: 360px; height: 360px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(230,57,70,0.12) 0%, rgba(230,57,70,0.05) 70%, rgba(230,57,70,0) 100%);
+    border: 2px solid rgba(230,57,70,0.7);
+    box-shadow: 0 0 60px rgba(230,57,70,0.25), inset 0 0 80px rgba(230,57,70,0.08);
+    animation: zonePulse 3.6s ease-in-out infinite;
+  }
+  @keyframes zonePulse {
+    0%, 100% {
+      box-shadow: 0 0 60px rgba(230,57,70,0.25), inset 0 0 80px rgba(230,57,70,0.08);
+      border-color: rgba(230,57,70,0.7);
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      box-shadow: 0 0 100px rgba(230,57,70,0.45), inset 0 0 100px rgba(230,57,70,0.12);
+      border-color: rgba(230,57,70,1);
+      transform: translate(-50%, -50%) scale(1.015);
+    }
+  }
+
+  .sa-pin {
+    position: absolute;
+    top: 50%; left: 38%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+  }
+  .sa-pin-knob {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #f5f5f5 0%, #c0c0c0 60%, #8a8a8a 100%);
+    border: 3px solid var(--red);
+    box-shadow: 0 0 24px rgba(230,57,70,0.8), 0 0 0 4px rgba(230,57,70,0.2);
+    position: relative;
+  }
+  .sa-pin-knob::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px var(--red);
+  }
+  .sa-pin-label {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 10px;
+    border-radius: 32px;
+    background: rgba(10,10,10,0.85);
+    border: 1px solid rgba(192,192,192,0.2);
+    backdrop-filter: blur(10px);
+    font-family: var(--syncopate);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--silver);
+    white-space: nowrap;
+  }
+
+  /* Search widget */
+  .sa-search {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 5;
+    width: min(380px, calc(100% - 48px));
+    padding: 18px;
+    border-radius: 24px;
+    background: rgba(10,10,10,0.78);
+    border: 1px solid rgba(192,192,192,0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  }
+  .sa-search-label {
+    display: block;
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(192,192,192,0.7);
+    margin-bottom: 8px;
+  }
+  .sa-search-wrap { position: relative; }
+  .sa-search-icon {
+    position: absolute;
+    left: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--red);
+  }
+  .sa-search-input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(192,192,192,0.2);
+    border-radius: 16px;
+    color: var(--silver);
+    font-family: var(--inter);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .sa-search-input:focus { border-color: var(--red); }
+  .sa-search-input::placeholder { color: rgba(192,192,192,0.4); }
+
+  .sa-suggestions {
+    margin-top: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    background: rgba(15,15,15,0.95);
+    border: 1px solid rgba(192,192,192,0.2);
+    border-radius: 16px;
+    padding: 6px;
+    display: none;
+  }
+  .sa-suggestions.open { display: block; }
+  .sa-sugg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    color: var(--silver);
+    font-family: var(--inter);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .sa-sugg-item:hover { background: rgba(230,57,70,0.08); }
+  .sa-sugg-item .miles {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(192,192,192,0.5);
+  }
+
+  .sa-feedback {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    display: none;
+    align-items: flex-start;
+    gap: 8px;
+    animation: saFb 0.3s ease;
+  }
+  .sa-feedback.show { display: flex; }
+  @keyframes saFb { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .sa-feedback.in {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.4);
+  }
+  .sa-feedback.out {
+    background: rgba(192,192,192,0.05);
+    border: 1px solid rgba(192,192,192,0.25);
+  }
+  .sa-fb-icon {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .sa-feedback.in .sa-fb-icon {
+    background: #22c55e;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(34,197,94,0.7);
+  }
+  .sa-feedback.out .sa-fb-icon {
+    background: transparent;
+    border: 1px solid rgba(192,192,192,0.5);
+    color: var(--silver);
+  }
+  .sa-fb-title {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .sa-feedback.in .sa-fb-title { color: #22c55e; }
+  .sa-feedback.out .sa-fb-title { color: var(--silver); }
+  .sa-fb-msg {
+    font-family: var(--inter);
+    font-size: 12px;
+    color: rgba(192,192,192,0.85);
+    margin-top: 2px;
+    line-height: 1.45;
+  }
+  .sa-fb-msg a { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Trust badges */
+  .sa-badges {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 320px;
+    list-style: none;
+  }
+  .sa-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 20px;
+    background: rgba(10,10,10,0.78);
+    border: 1px solid rgba(192,192,192,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .sa-badge-ico {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(230,57,70,0.1);
+    border: 1px solid rgba(230,57,70,0.4);
+    color: var(--red);
+  }
+  .sa-badge-name {
+    font-family: var(--syncopate);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .sa-badge-desc {
+    font-family: var(--inter);
+    font-size: 11px;
+    color: rgba(192,192,192,0.65);
+    margin-top: 1px;
+  }
+
+  /* Soft zoom */
+  .sa-frame.zoom .sa-map-bg,
+  .sa-frame.zoom .sa-roads,
+  .sa-frame.zoom .sa-zone,
+  .sa-frame.zoom .sa-pin {
+    transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-origin: 38% 50%;
+  }
+  .sa-frame.zoom .sa-map-bg,
+  .sa-frame.zoom .sa-roads { transform: scale(1.15); }
+  .sa-frame.zoom .sa-zone { transform: translate(-50%, -50%) scale(1.05); }
+
+  .sa-note {
+    max-width: 60ch;
+    margin: 24px auto 0;
+    text-align: center;
+    font-family: var(--inter);
+    font-size: 12px;
+    color: rgba(160,160,160,0.7);
+  }
+
+  @media (max-width: 900px) {
+    .sa { padding: 96px 0; }
+    .sa-inner { padding: 0 24px; }
+    .sa-header { grid-template-columns: 1fr; }
+    .sa-frame { aspect-ratio: 4 / 5; min-height: 560px; }
+    .sa-search {
+      top: 16px;
+      left: 16px;
+      width: calc(100% - 32px);
+      padding: 14px;
+    }
+    .sa-badges {
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      max-width: none;
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sa-badge { flex: 1 1 calc(50% - 4px); min-width: 0; padding: 8px 10px; }
+    .sa-badge-desc { display: none; }
+    .sa-zone { width: 240px; height: 240px; }
+  }
+
+  /* ====================== FAQ ====================== */
+  .faq {
+    position: relative;
+    overflow: hidden;
+    padding: 144px 0;
+    background: var(--black);
+  }
+  .faq-mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(45% 35% at 50% 30%, rgba(230,57,70,0.06) 0%, rgba(230,57,70,0) 70%);
+  }
+  .faq-grain {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.025; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+  .faq-inner {
+    position: relative;
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .faq-header { text-align: center; margin-bottom: 64px; }
+  .faq-h2 {
+    max-width: 20ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 4.5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .faq-sub {
+    max-width: 56ch;
+    margin: 20px auto 0;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(160,160,160,0.9);
+  }
+
+  .faq-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.015);
+    border: 1px solid rgba(192,192,192,0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .faq-panel {
+    border-radius: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(192,192,192,0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), border-color 0.4s ease, box-shadow 0.4s ease;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: faqIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .faq-panel:nth-child(1) { animation-delay: 0.10s; }
+  .faq-panel:nth-child(2) { animation-delay: 0.18s; }
+  .faq-panel:nth-child(3) { animation-delay: 0.26s; }
+  .faq-panel:nth-child(4) { animation-delay: 0.34s; }
+  .faq-panel:nth-child(5) { animation-delay: 0.42s; }
+  @keyframes faqIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .faq-panel:hover { transform: translateY(-3px); border-color: rgba(192,192,192,0.25); }
+  .faq-panel.open {
+    border-color: rgba(230,57,70,0.4);
+    box-shadow: 0 0 28px rgba(230,57,70,0.2), 0 0 56px rgba(230,57,70,0.1);
+  }
+
+  .faq-trigger {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 28px;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    color: var(--silver);
+  }
+  .faq-q {
+    font-family: var(--syncopate);
+    font-size: clamp(13px, 1.5vw, 15px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--silver);
+    line-height: 1.4;
+    transition: color 0.3s;
+  }
+  .faq-panel.open .faq-q { color: #fff; }
+
+  .faq-toggle {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(230,57,70,0.1);
+    border: 1px solid rgba(230,57,70,0.5);
+    color: var(--red);
+    transition: transform 0.45s cubic-bezier(0.4,0,0.2,1), background 0.3s, color 0.3s, box-shadow 0.3s;
+  }
+  .faq-panel.open .faq-toggle {
+    transform: rotate(45deg);
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(230,57,70,0.5);
+  }
+
+  .faq-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    opacity: 0;
+  }
+  .faq-panel.open .faq-body {
+    max-height: 400px;
+    opacity: 1;
+  }
+  .faq-body-inner {
+    padding: 0 28px 28px;
+    font-family: var(--inter);
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(192,192,192,0.85);
+    max-width: 62ch;
+  }
+
+  .faq-cta {
+    margin-top: 40px;
+    text-align: center;
+    font-family: var(--inter);
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: rgba(192,192,192,0.65);
+  }
+  .faq-cta a {
+    color: var(--silver);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color 0.3s;
+  }
+  .faq-cta a:hover { color: var(--red); }
+
+  @media (max-width: 768px) {
+    .faq { padding: 96px 0; }
+    .faq-inner { padding: 0 24px; }
+    .faq-trigger { padding: 20px 22px; }
+    .faq-body-inner { padding: 0 22px 22px; }
+  }
+
+  /* ====================== ABOUT ====================== */
+  .ab { background: var(--black); position: relative; }
+
+  /* Hero Vision */
+  .ab-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: clamp(96px, 16vw, 192px) 0;
+    background: #0A0A0A;
+  }
+  .ab-hero-canvas {
+    position: absolute; inset: 0; z-index: -30;
+    background:
+      radial-gradient(ellipse 30% 30% at 25% 30%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 25% 25% at 65% 55%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 20% 20% at 80% 75%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 18% 18% at 40% 80%, rgba(180,210,255,0.10) 0%, rgba(180,210,255,0) 60%),
+      radial-gradient(ellipse 22% 22% at 90% 30%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(ellipse 15% 15% at 15% 70%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(135deg, #060608 0%, #0a0a0c 50%, #050505 100%);
+    filter: brightness(0.7);
+  }
+  .ab-shape {
+    position: absolute;
+    z-index: -20;
+    border-radius: 32px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+    will-change: transform;
+  }
+  .ab-shape-1 { left: -80px; top: 80px; width: 380px; height: 380px; background: #0E0E0E; transform: rotate(-8deg); }
+  .ab-shape-2 { right: -100px; bottom: 60px; width: 280px; height: 280px; background: #0C0C0C; transform: rotate(12deg); }
+  .ab-hero-overlay {
+    position: absolute; inset: 0; z-index: -10;
+    background: rgba(10,10,10,0.55);
+  }
+  .ab-hero-inner {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 40px;
+    text-align: center;
+  }
+  .ab-hero-kicker {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 18px;
+  }
+  .ab-hero-h2 {
+    max-width: 20ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .ab-hero-sub {
+    max-width: 60ch;
+    margin: 28px auto 0;
+    font-family: var(--inter);
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(192,192,192,0.85);
+  }
+
+  /* Specialist */
+  .ab-spec { padding: 128px 0; position: relative; }
+  .ab-spec-inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  .ab-spec-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(192,192,192,0.15);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  /* Photo mock */
+  .ab-spec-photo {
+    position: relative;
+    background:
+      radial-gradient(ellipse 40% 30% at 50% 40%, rgba(230,57,70,0.18) 0%, rgba(230,57,70,0) 70%),
+      radial-gradient(ellipse 60% 40% at 50% 60%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(160deg, #1a1a1f 0%, #0a0a0c 60%, #050505 100%);
+    min-height: 480px;
+  }
+  .ab-spec-photo::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%),
+      linear-gradient(135deg, transparent 60%, rgba(230,57,70,0.12) 75%, transparent 90%);
+  }
+  .ab-spec-photo::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(10,10,10,0) 50%, rgba(10,10,10,0.7) 100%),
+      linear-gradient(90deg, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0) 35%);
+  }
+  .ab-spec-photo-tag {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    padding: 6px 12px;
+    background: rgba(10,10,10,0.65);
+    border: 1px solid rgba(192,192,192,0.2);
+    border-radius: 32px;
+    backdrop-filter: blur(12px);
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .ab-spec-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px;
+  }
+  .ab-spec-kicker {
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .ab-spec-h3 {
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ab-creds {
+    list-style: none;
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .ab-cred { display: flex; align-items: flex-start; gap: 16px; }
+  .ab-cred-ico {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(230,57,70,0.08);
+    border: 1px solid rgba(230,57,70,0.4);
+    color: var(--red);
+    margin-top: 2px;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .ab-cred:hover .ab-cred-ico { transform: rotate(8deg) scale(1.08); }
+  .ab-cred-label {
+    font-family: var(--syncopate);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+  .ab-cred-desc {
+    margin-top: 4px;
+    font-family: var(--inter);
+    font-size: 14px;
+    color: rgba(192,192,192,0.7);
+    line-height: 1.6;
+  }
+  .ab-quote {
+    margin-top: 36px;
+    padding-left: 20px;
+    border-left: 1px solid var(--red);
+    font-family: var(--inter);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(240,240,240,0.92);
+  }
+
+  /* Pillars */
+  .ab-pillars { padding: 112px 0; position: relative; }
+  .ab-pillars-inner { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+  .ab-pillars-header { text-align: center; margin-bottom: 56px; }
+  .ab-pillars-kicker {
+    font-family: var(--syncopate);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .ab-pillars-h3 {
+    max-width: 24ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2.75rem);
+    line-height: 1.1;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ab-pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .ab-pillar {
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(192,192,192,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), border-color 0.4s, background 0.4s;
+  }
+  .ab-pillar:hover {
+    transform: translateY(-4px);
+    border-color: rgba(192,192,192,0.25);
+    background: rgba(255,255,255,0.04);
+  }
+  .ab-pillar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .ab-pillar-ico {
+    width: 48px; height: 48px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(230,57,70,0.08);
+    border: 1px solid rgba(230,57,70,0.4);
+    color: var(--red);
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .ab-pillar:hover .ab-pillar-ico { transform: rotate(15deg) scale(1.08); }
+  .ab-pillar-num {
+    font-family: var(--syncopate);
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(192,192,192,0.15);
+    letter-spacing: 2px;
+  }
+  .ab-pillar-name {
+    font-family: var(--syncopate);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 10px;
+  }
+  .ab-pillar-body {
+    font-family: var(--inter);
+    font-size: 14px;
+    line-height: 1.65;
+    color: rgba(192,192,192,0.75);
+  }
+
+  /* Commitment */
+  .ab-cmt { padding: 128px 0; position: relative; text-align: center; }
+  .ab-cmt-inner { max-width: 1080px; margin: 0 auto; padding: 0 40px; }
+  .ab-cmt-h2 {
+    max-width: 22ch;
+    margin: 0 auto;
+    font-family: var(--syncopate);
+    font-weight: 700;
+    font-size: clamp(1.75rem, 5vw, 3.75rem);
+    line-height: 1.05;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 50%, #8A8A8A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ab-cmt-h2 .accent {
+    background: linear-gradient(180deg, #FFFFFF 0%, #E63946 60%, #8A1F26 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ab-cmt-copy {
+    max-width: 60ch;
+    margin: 32px auto 0;
+    font-family: var(--inter);
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(192,192,192,0.85);
+  }
+  .ab-divider {
+    margin: 48px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ab-divider span.line {
+    display: block;
+    width: 64px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--silver), transparent);
+  }
+  .ab-divider span.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 12px var(--red);
+    margin: 0 16px;
+  }
+  .ab-cmt-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: var(--red);
+    color: #fff;
+    border-radius: 32px;
+    font-family: var(--syncopate);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .ab-cmt-cta:hover {
+    box-shadow: 0 0 32px rgba(230,57,70,0.6), 0 0 64px rgba(230,57,70,0.33);
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  @media (max-width: 900px) {
+    .ab-spec-card { grid-template-columns: 1fr; }
+    .ab-spec-photo { min-height: 360px; aspect-ratio: 4/5; }
+    .ab-spec-body { padding: 32px; }
+    .ab-pillar-grid { grid-template-columns: 1fr; }
+    .ab-shape-1, .ab-shape-2 { display: none; }
+    .ab-spec, .ab-pillars, .ab-cmt { padding: 80px 0; }
+    .ab-spec-inner, .ab-pillars-inner, .ab-cmt-inner, .ab-hero-inner { padding: 0 24px; }
+  }
+
+  /* ====================== FOOTER ====================== */
+  .ft {
+    position: relative;
+    margin-top: 96px;
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    border-top: 1px solid rgba(192,192,192,0.25);
+    background: rgba(18,18,18,0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    box-shadow: 0 -16px 64px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .ft-inner {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+  .ft-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+  }
+  .ft-tagline {
+    margin-top: 20px;
+    font-family: var(--syncopate);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--silver);
+    line-height: 1.6;
+  }
+  .ft-mission {
+    margin-top: 20px;
+    max-width: 36ch;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 13px;
+    line-height: 1.65;
+    color: rgba(192,192,192,0.65);
+  }
+  .ft-col-h {
+    font-family: var(--syncopate);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 24px;
+  }
+  .ft-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ft-link {
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 14px;
+    color: rgba(192,192,192,0.8);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ft-link:hover { color: var(--red); }
+
+  .ft-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 6px 14px;
+    border-radius: 32px;
+    background: rgba(230,57,70,0.08);
+    border: 1px solid rgba(230,57,70,0.25);
+    font-family: var(--inter);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--silver);
+  }
+  .ft-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+  }
+  .ft-coverage {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    list-style: none;
+  }
+  .ft-coverage li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 13px;
+    color: rgba(192,192,192,0.7);
+  }
+  .ft-coverage li svg { color: var(--red); }
+  .ft-italic {
+    margin-top: 16px;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(192,192,192,0.55);
+  }
+  .ft-sub-h {
+    margin-top: 20px;
+    font-family: var(--syncopate);
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(192,192,192,0.5);
+  }
+  .ft-hours {
+    margin-top: 8px;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 13px;
+    color: rgba(192,192,192,0.7);
+    line-height: 1.6;
+  }
+  .ft-socials { margin-top: 24px; display: flex; align-items: center; gap: 12px; }
+  .ft-social {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(192,192,192,0.2);
+    color: var(--silver);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .ft-social:hover {
+    color: var(--red);
+    border-color: var(--red);
+    background: rgba(230,57,70,0.08);
+    box-shadow: 0 0 16px rgba(230,57,70,0.33);
+  }
+
+  .ft-sub {
+    border-top: 1px solid rgba(192,192,192,0.10);
+    background: rgba(0,0,0,0.25);
+  }
+  .ft-sub-inner {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .ft-copyright {
+    font-family: var(--syncopate);
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(192,192,192,0.55);
+  }
+  .ft-legal {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--inter);
+    font-weight: 300;
+    font-size: 12px;
+  }
+  .ft-legal a {
+    color: rgba(192,192,192,0.55);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .ft-legal a:hover { color: var(--red); }
+  .ft-legal .sep { color: rgba(192,192,192,0.2); }
+
+  /* Back to top */
+  .ft-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 200;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--silver);
+    border: 1px solid var(--red);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 6px rgba(230,57,70,0.1), 0 0 24px rgba(230,57,70,0.5), 0 8px 20px rgba(0,0,0,0.5);
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .ft-top.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+  }
+  .ft-top:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 0 0 8px rgba(230,57,70,0.15), 0 0 32px rgba(230,57,70,0.67), 0 8px 24px rgba(0,0,0,0.6);
+  }
+
+  @media (max-width: 900px) {
+    .ft-inner { padding: 64px 24px; }
+    .ft-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .ft-sub-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 20px 24px;
+    }
+    .ft-top { bottom: 20px; right: 20px; }
+  }
+  @media (max-width: 540px) {
+    .ft-grid { grid-template-columns: 1fr; }
+    .ft-coverage { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ba-knob { animation: none; }
+    .tcard { animation: none !important; opacity: 1; transform: none; }
+    .bk-next.solid { animation: none !important; }
+    .sa-zone { animation: none !important; }
+    .faq-panel { animation: none !important; opacity: 1; transform: none; }
+    .ab-shape { transform: none !important; }
+    .ft-top { transition: opacity 0.2s !important; transform: scale(1) translateY(0); }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== NAVBAR ============== -->
+<nav class="nav" id="nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="#" class="logo" aria-label="Fluid Precision — Home">
+      <svg viewBox="0 0 180 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M4 4h6m-6 8h4m-4 8h6M18 4v16m0-16h6m-6 8h4M30 20V4l8 16V4M48 4h6m-6 8h4m-4 8h6M62 4v16M70 4l4 12 4-12M84 20V4l8 16V4"
+              stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="square" />
+        <text x="100" y="16" font-family="Syncopate, sans-serif" font-size="11" letter-spacing="3" fill="#C0C0C0">FLUID</text>
+      </svg>
+    </a>
+
+    <ul class="nav-links" role="menubar">
+      <li role="none"><a class="nav-link" role="menuitem" href="#">Services</a></li>
+      <li role="none"><a class="nav-link" role="menuitem" href="#">Portfolio</a></li>
+      <li role="none"><a class="nav-link" role="menuitem" href="#">Service Area</a></li>
+      <li role="none"><a class="nav-link" role="menuitem" href="#">About</a></li>
+    </ul>
+
+    <a href="tel:+10000000000" class="cta-pill nav-cta-desktop" aria-label="Call Fluid Precision now">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Call Now
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" data-open="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line class="ham-line top" x1="4" x2="20" y1="12" y2="12" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" />
+        <line class="ham-line bottom" x1="4" x2="20" y1="12" y2="12" stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ============== MOBILE OVERLAY ============== -->
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+  <ul class="mobile-links" role="menu">
+    <li role="none"><a class="mobile-link" role="menuitem" href="#">Services</a></li>
+    <li role="none"><a class="mobile-link" role="menuitem" href="#">Portfolio</a></li>
+    <li role="none"><a class="mobile-link" role="menuitem" href="#">Service Area</a></li>
+    <li role="none"><a class="mobile-link" role="menuitem" href="#">About</a></li>
+  </ul>
+  <a href="tel:+10000000000" class="mobile-cta" aria-label="Call Fluid Precision now">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    Call Now
+  </a>
+</div>
+
+<!-- ============== HERO ============== -->
+<section class="hero" aria-label="Fluid Precision — Showroom Shine">
+  <div class="hero-canvas" aria-hidden="true"></div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-mesh" aria-hidden="true"></div>
+  <div class="hero-grain" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+      <span class="eyebrow">
+        <span class="dot" aria-hidden="true"></span>
+        Mobile Detailing · Precision Crafted
+      </span>
+
+      <h1 class="h1">
+        The Showroom <br />
+        <span class="accent">Shine</span>
+      </h1>
+
+      <p class="sub">
+        Delivered right to your driveway. Concours-grade ceramic coatings, paint correction, and interior restoration — performed on-site by certified specialists.
+      </p>
+
+      <div class="ctas">
+        <a href="#" class="btn btn-primary" aria-label="Book your detailing appointment">
+          Book Your Shine
+          <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="#" class="btn btn-secondary" aria-label="View detailing services">
+          View Services
+        </a>
+      </div>
+
+      <div class="trust">
+        <span class="item"><span class="pulse" aria-hidden="true"></span>IDA Certified</span>
+        <span class="item">Ceramic Pro Authorized</span>
+        <span class="item">5.0 ★ · 400+ Reviews</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-bottom-fade" aria-hidden="true"></div>
+</section>
+
+<!-- ============== SERVICES ============== -->
+<section class="services" id="services" aria-labelledby="services-heading">
+  <div class="services-mesh" aria-hidden="true"></div>
+  <div class="services-grain" aria-hidden="true"></div>
+
+  <div class="services-inner">
+    <header class="services-header">
+      <h2 class="services-h2" id="services-heading">Choose Your Level of Perfection</h2>
+      <p class="services-sub">Transparent pricing with no hidden fees. We bring elite-level precision to your driveway.</p>
+    </header>
+
+    <div class="pkg-grid">
+      <!-- SILVER -->
+      <article class="pkg-card" aria-labelledby="pkg-silver-name">
+        <h3 class="pkg-name" id="pkg-silver-name">Silver</h3>
+        <p class="pkg-tagline">Essential Refresh</p>
+        <span class="pkg-price">$149+</span>
+        <span class="pkg-duration">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          1.5 – 2 Hours
+        </span>
+        <ul class="pkg-features" aria-label="Silver package features">
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>pH-Neutral Hand Wash & Dry</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Wheels & Tire Dressing</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Interior Vacuum & Dusting</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Streak-Free Glass Cleaning</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Spray Wax for Instant Shine</li>
+        </ul>
+        <a href="#" class="pkg-cta glass" aria-label="Select Silver package">Select Package</a>
+      </article>
+
+      <!-- GOLD -->
+      <article class="pkg-card popular" aria-labelledby="pkg-gold-name">
+        <span class="pkg-badge" aria-hidden="true">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+          Most Popular
+        </span>
+        <h3 class="pkg-name" id="pkg-gold-name">Gold</h3>
+        <p class="pkg-tagline">The Signature Detail</p>
+        <span class="pkg-price">$299+</span>
+        <span class="pkg-duration">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          3 – 4.5 Hours
+        </span>
+        <ul class="pkg-features" aria-label="Gold package features">
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Everything in Silver</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Clay Bar Paint Decontamination</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>6-Month Ceramic Sealant</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Interior Steam Cleaning</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Leather Conditioning</li>
+        </ul>
+        <a href="#" class="pkg-cta solid" aria-label="Select Gold package">Select Package</a>
+      </article>
+
+      <!-- PLATINUM -->
+      <article class="pkg-card" aria-labelledby="pkg-platinum-name">
+        <h3 class="pkg-name" id="pkg-platinum-name">Platinum</h3>
+        <p class="pkg-tagline">Ultimate Protection</p>
+        <span class="pkg-price">$599+</span>
+        <span class="pkg-duration">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          6 – 8 Hours · Full Day
+        </span>
+        <ul class="pkg-features" aria-label="Platinum package features">
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Everything in Gold</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Paint Enhancement (Swirl Removal)</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Entry-Level Ceramic Coating</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Deep Carpet Shampooing</li>
+          <li class="pkg-feature"><span class="pkg-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Engine Bay Detail & Protect</li>
+        </ul>
+        <a href="#" class="pkg-cta outline" aria-label="Select Platinum package">Select Package</a>
+      </article>
+    </div>
+
+    <p class="services-note">Final quote is based on vehicle size and condition. Mobile service fee included within 20 miles.</p>
+  </div>
+</section>
+
+<!-- ============== PORTFOLIO ============== -->
+<section class="portfolio" id="portfolio" aria-labelledby="portfolio-heading">
+  <div class="pf-mesh" aria-hidden="true"></div>
+  <div class="pf-grain" aria-hidden="true"></div>
+
+  <div class="pf-inner">
+    <header class="pf-header">
+      <h2 class="pf-h2" id="portfolio-heading">The Evidence of Precision</h2>
+      <p class="pf-sub">Visual proof of our commitment to automotive excellence. Drag the slider to witness the transformation.</p>
+    </header>
+
+    <div class="ba-slider" id="ba-slider" role="group" aria-label="Before and after comparison">
+      <div class="ba-img after" aria-hidden="true"></div>
+      <div class="ba-before-wrap" id="ba-before-wrap" aria-hidden="true">
+        <div class="ba-img before"></div>
+      </div>
+
+      <span class="ba-label before" aria-hidden="true">Before</span>
+      <span class="ba-label after" aria-hidden="true">After</span>
+
+      <div class="ba-handle" id="ba-handle" style="left: 50%;">
+        <div class="ba-line" aria-hidden="true"></div>
+        <button class="ba-knob" id="ba-knob" type="button" role="slider"
+                aria-label="Comparison slider position"
+                aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/>
+            <circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="pf-info" id="pf-info">
+      <span>Vehicle: <span class="val" id="pf-vehicle">Porsche 911 GT3</span></span>
+      <span class="sep" aria-hidden="true">|</span>
+      <span>Service: <span class="val-red" id="pf-service">Platinum Ceramic Package</span></span>
+    </div>
+
+    <div class="pf-tabs" role="tablist">
+      <button class="pf-tab active" data-vehicle="Porsche 911 GT3" data-service="Platinum Ceramic Package" role="tab" aria-selected="true">Porsche 911 GT3</button>
+      <button class="pf-tab" data-vehicle="Range Rover Autobiography" data-service="Gold Signature Detail" role="tab" aria-selected="false">Range Rover Autobiography</button>
+      <button class="pf-tab" data-vehicle="Mercedes-AMG G63" data-service="Platinum Ceramic Package" role="tab" aria-selected="false">Mercedes-AMG G63</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TESTIMONIALS ============== -->
+<section class="testimonials" id="testimonials" aria-labelledby="testimonials-heading">
+  <div class="t-mesh" aria-hidden="true"></div>
+  <div class="t-grain" aria-hidden="true"></div>
+
+  <div class="t-inner">
+    <header class="t-header">
+      <h2 class="t-h2" id="testimonials-heading">Trusted by the Discerning</h2>
+      <p class="t-sub">Our reputation is built on surgical precision. Join the elite circle of owners who never compromise on aesthetic excellence.</p>
+    </header>
+
+    <!-- Desktop grid -->
+    <div class="t-grid" id="t-grid">
+      <!-- Card template duplicated 3x; mobile track injected below by JS clone -->
+      <article class="tcard" aria-label="Testimonial from Mark Harrison">
+        <svg class="tcard-quote-glyph" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+        <div class="tcard-stars" role="img" aria-label="5 out of 5 stars">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="tcard-quote">&ldquo;The attention to detail is surgical. They didn't just clean my car; they restored its soul. The best mobile service in the city, hands down.&rdquo;</blockquote>
+        <footer class="tcard-footer">
+          <div class="tcard-identity">
+            <p class="tcard-name">Mark Harrison</p>
+            <p class="tcard-role">Owner of 2024 Porsche 911</p>
+          </div>
+          <span class="tcard-verified" title="Verified Client">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Verified
+          </span>
+        </footer>
+      </article>
+
+      <article class="tcard" aria-label="Testimonial from Sarah Chen">
+        <svg class="tcard-quote-glyph" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+        <div class="tcard-stars" role="img" aria-label="5 out of 5 stars">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="tcard-quote">&ldquo;I expected a wash. I got concours-level work in my driveway. The ceramic coating still beads water like glass after eight months of daily driving.&rdquo;</blockquote>
+        <footer class="tcard-footer">
+          <div class="tcard-identity">
+            <p class="tcard-name">Sarah Chen</p>
+            <p class="tcard-role">Owner of 2023 Range Rover Autobiography</p>
+          </div>
+          <span class="tcard-verified" title="Verified Client">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Verified
+          </span>
+        </footer>
+      </article>
+
+      <article class="tcard" aria-label="Testimonial from Antonio Delgado">
+        <svg class="tcard-quote-glyph" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+        <div class="tcard-stars" role="img" aria-label="5 out of 5 stars">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <blockquote class="tcard-quote">&ldquo;Punctual, meticulous, and genuinely passionate. They treat your car the way you wish every shop did. Worth every dollar — and then some.&rdquo;</blockquote>
+        <footer class="tcard-footer">
+          <div class="tcard-identity">
+            <p class="tcard-name">Antonio Delgado</p>
+            <p class="tcard-role">Owner of 2024 Mercedes-AMG G63</p>
+          </div>
+          <span class="tcard-verified" title="Verified Client">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Verified
+          </span>
+        </footer>
+      </article>
+    </div>
+
+    <!-- Mobile carousel (populated by JS clone) -->
+    <div class="t-track" id="t-track" aria-label="Testimonials carousel"></div>
+    <div class="t-nav">
+      <button class="t-arrow" id="t-prev" aria-label="Previous testimonial">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="t-arrow" id="t-next" aria-label="Next testimonial">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== BOOKING ============== -->
+<section class="booking" id="book" aria-labelledby="booking-heading">
+  <div class="bk-mesh" aria-hidden="true"></div>
+
+  <div class="bk-inner">
+    <header class="bk-header">
+      <h2 class="bk-h2" id="booking-heading">Reserve Your Detail</h2>
+      <p class="bk-sub">Five-step concierge booking. No hidden fees.</p>
+    </header>
+
+    <div class="bk-card">
+      <div class="bk-progress" aria-hidden="true">
+        <div class="bk-progress-bar" id="bk-progress-bar"></div>
+      </div>
+
+      <div class="bk-stepbar">
+        <div class="bk-steps" id="bk-steps">
+          <span class="bk-step-dot active">1</span><span class="bk-step-line"></span>
+          <span class="bk-step-dot">2</span><span class="bk-step-line"></span>
+          <span class="bk-step-dot">3</span><span class="bk-step-line"></span>
+          <span class="bk-step-dot">4</span><span class="bk-step-line"></span>
+          <span class="bk-step-dot">5</span>
+        </div>
+        <button class="bk-back" id="bk-back" style="visibility: hidden;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+      </div>
+
+      <div class="bk-body">
+        <!-- STEP 1: VEHICLE -->
+        <div class="bk-step active" data-step="0">
+          <p class="bk-kicker">Step 01</p>
+          <h3 class="bk-step-title">Vehicle Identity</h3>
+
+          <div class="bk-vehicle-grid">
+            <button class="bk-vehicle" data-vehicle="sedan" data-add="0">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+              <span class="bk-vehicle-label">Sedan</span>
+              <span class="bk-vehicle-add">Base</span>
+            </button>
+            <button class="bk-vehicle" data-vehicle="suv" data-add="50">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"/><path d="M7 14h.01"/><path d="M17 14h.01"/><rect width="18" height="8" x="3" y="10" rx="2"/><path d="M5 18v2"/><path d="M19 18v2"/></svg>
+              <span class="bk-vehicle-label">SUV</span>
+              <span class="bk-vehicle-add">+$50</span>
+            </button>
+            <button class="bk-vehicle" data-vehicle="truck" data-add="100">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+              <span class="bk-vehicle-label">Truck</span>
+              <span class="bk-vehicle-add">+$100</span>
+            </button>
+            <button class="bk-vehicle" data-vehicle="exotic" data-add="75">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span class="bk-vehicle-label">Exotic</span>
+              <span class="bk-vehicle-add">+$75</span>
+            </button>
+          </div>
+
+          <div class="bk-row">
+            <div>
+              <label class="bk-label" for="bk-brand">Brand</label>
+              <input class="bk-input" id="bk-brand" type="text" placeholder="e.g., Tesla" />
+            </div>
+            <div>
+              <label class="bk-label" for="bk-model">Model / Year</label>
+              <input class="bk-input" id="bk-model" type="text" placeholder="e.g., Model 3 / 2024" />
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: PACKAGE -->
+        <div class="bk-step" data-step="1">
+          <p class="bk-kicker">Step 02</p>
+          <h3 class="bk-step-title">Service Selection</h3>
+
+          <div class="bk-customized" id="bk-customized" style="display: none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+            Customized for your <span id="bk-customized-veh">Sedan</span>
+          </div>
+
+          <div class="bk-pkg-grid" id="bk-pkg-grid">
+            <button class="bk-pkg" data-pkg="silver" data-base="149" data-dur="1.75">
+              <span class="bk-pkg-name">Silver</span>
+              <span class="bk-pkg-desc">Essential Refresh</span>
+              <span class="bk-pkg-price" data-base="149">$149</span>
+              <span class="bk-pkg-dur">~1.75 hrs base</span>
+            </button>
+            <button class="bk-pkg" data-pkg="gold" data-base="299" data-dur="3.75">
+              <span class="bk-pkg-name">Gold</span>
+              <span class="bk-pkg-desc">The Signature Detail</span>
+              <span class="bk-pkg-price" data-base="299">$299</span>
+              <span class="bk-pkg-dur">~3.75 hrs base</span>
+            </button>
+            <button class="bk-pkg" data-pkg="platinum" data-base="599" data-dur="7">
+              <span class="bk-pkg-name">Platinum</span>
+              <span class="bk-pkg-desc">Ultimate Protection</span>
+              <span class="bk-pkg-price" data-base="599">$599</span>
+              <span class="bk-pkg-dur">~7 hrs base</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: ADDONS -->
+        <div class="bk-step" data-step="2">
+          <p class="bk-kicker">Step 03 · Optional</p>
+          <h3 class="bk-step-title">Tailor Your Session</h3>
+
+          <div class="bk-addon-grid" id="bk-addon-grid">
+            <button class="bk-addon" data-addon="pet" data-price="50" data-dur="0.5">
+              <span class="bk-checkbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1;">
+                <div class="bk-addon-row">
+                  <span class="bk-addon-name">Pet Hair Removal</span>
+                  <span class="bk-addon-price">+$50</span>
+                </div>
+                <p class="bk-addon-desc">Deep cleaning for carpets & seats</p>
+              </div>
+            </button>
+            <button class="bk-addon" data-addon="headlight" data-price="80" data-dur="0.5">
+              <span class="bk-checkbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1;">
+                <div class="bk-addon-row">
+                  <span class="bk-addon-name">Headlight Restoration</span>
+                  <span class="bk-addon-price">+$80</span>
+                </div>
+                <p class="bk-addon-desc">Clear coat for oxidized lenses</p>
+              </div>
+            </button>
+            <button class="bk-addon" data-addon="engine" data-price="75" data-dur="0.75">
+              <span class="bk-checkbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1;">
+                <div class="bk-addon-row">
+                  <span class="bk-addon-name">Engine Bay Detail</span>
+                  <span class="bk-addon-price">+$75</span>
+                </div>
+                <p class="bk-addon-desc">Degrease & protective dressing</p>
+              </div>
+            </button>
+            <button class="bk-addon" data-addon="odor" data-price="60" data-dur="0.5">
+              <span class="bk-checkbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1;">
+                <div class="bk-addon-row">
+                  <span class="bk-addon-name">Odor Elimination</span>
+                  <span class="bk-addon-price">+$60</span>
+                </div>
+                <p class="bk-addon-desc">Professional ozone treatment</p>
+              </div>
+            </button>
+            <button class="bk-addon" data-addon="trim" data-price="50" data-dur="0.25">
+              <span class="bk-checkbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1;">
+                <div class="bk-addon-row">
+                  <span class="bk-addon-name">Trim Restoration</span>
+                  <span class="bk-addon-price">+$50</span>
+                </div>
+                <p class="bk-addon-desc">UV protection for exterior plastics</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 4: SCHEDULE -->
+        <div class="bk-step" data-step="3">
+          <p class="bk-kicker">Step 04</p>
+          <h3 class="bk-step-title">Logistics & Scheduling</h3>
+
+          <div style="position:relative;">
+            <label class="bk-label" for="bk-address">Service Address</label>
+            <div class="bk-input-wrap">
+              <span class="bk-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></span>
+              <input class="bk-input with-icon" id="bk-address" type="text" placeholder="Start typing your address..." autocomplete="off" />
+            </div>
+            <div class="bk-suggestions" id="bk-suggestions"></div>
+          </div>
+
+          <div style="margin-top: 28px;">
+            <label class="bk-label">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline; vertical-align: middle; margin-right:6px;"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M3 10h18"/><path d="M8 2v4"/></svg>
+              Choose a Date
+            </label>
+            <div class="bk-days" id="bk-days"></div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <label class="bk-label">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline; vertical-align: middle; margin-right:6px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Time Slot
+            </label>
+            <div class="bk-times" id="bk-times">
+              <button class="bk-time" data-time="08:00">08:00</button>
+              <button class="bk-time" data-time="10:00">10:00</button>
+              <button class="bk-time" data-time="12:00">12:00</button>
+              <button class="bk-time" data-time="14:00">14:00</button>
+              <button class="bk-time" data-time="16:00">16:00</button>
+              <button class="bk-time" data-time="18:00">18:00</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: CONFIRM -->
+        <div class="bk-step" data-step="4">
+          <p class="bk-kicker">Step 05</p>
+          <h3 class="bk-step-title">Final Contact & Confirmation</h3>
+
+          <div class="bk-row">
+            <div>
+              <label class="bk-label" for="bk-name">Full Name</label>
+              <div class="bk-input-wrap">
+                <span class="bk-icon" style="color: var(--silver);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <input class="bk-input with-icon" id="bk-name" type="text" placeholder="Mark Harrison" required />
+              </div>
+            </div>
+            <div>
+              <label class="bk-label" for="bk-email">Email</label>
+              <div class="bk-input-wrap">
+                <span class="bk-icon" style="color: var(--silver);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+                <input class="bk-input with-icon" id="bk-email" type="email" placeholder="you@domain.com" required />
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="bk-label" for="bk-phone">Phone</label>
+            <div class="bk-input-wrap">
+              <span class="bk-icon" style="color: var(--silver);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+              <input class="bk-input with-icon" id="bk-phone" type="tel" placeholder="+1 (555) 000-0000" required />
+            </div>
+          </div>
+
+          <div class="bk-summary">
+            <h4 class="bk-summary-title">Order Summary</h4>
+            <ul class="bk-summary-list" id="bk-summary-list"></ul>
+            <div class="bk-summary-total">
+              <span class="bk-summary-total-label">Total</span>
+              <span class="bk-summary-total-val" id="bk-summary-total-val">$0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bk-bottom">
+        <div class="bk-bottom-info">
+          <span class="bk-bottom-label">Selection</span>
+          <span class="bk-bottom-summary" id="bk-bottom-summary">Configure your booking</span>
+        </div>
+        <div class="bk-bottom-right">
+          <div class="bk-total-block">
+            <span class="bk-bottom-label">Estimate</span>
+            <span class="bk-total-val" id="bk-total-val">$0</span>
+            <span class="bk-total-dur" id="bk-total-dur"></span>
+          </div>
+          <button class="bk-skip" id="bk-skip">Skip add-ons</button>
+          <button class="bk-next" id="bk-next" disabled>
+            <span id="bk-next-label">Next: Choose Package</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SERVICE AREA ============== -->
+<section class="sa" id="service-area" aria-labelledby="sa-heading">
+  <div class="sa-mesh" aria-hidden="true"></div>
+
+  <div class="sa-inner">
+    <header class="sa-header">
+      <div>
+        <p class="sa-kicker">Precision Coverage</p>
+        <h2 class="sa-h2" id="sa-heading">Where We Bring the Shine</h2>
+        <p class="sa-sub">Fully mobile, fully equipped. Drop your driveway address into the eligibility checker — instant confirmation if you're inside our 20-mile concierge radius.</p>
+      </div>
+      <ul class="sa-meta">
+        <li><span class="dot" aria-hidden="true"></span>Active Hub: Miami</li>
+        <li>20-mile radius</li>
+        <li>7 days/wk</li>
+      </ul>
+    </header>
+
+    <div class="sa-frame" id="sa-frame">
+      <div class="sa-map" aria-hidden="true">
+        <div class="sa-map-bg"></div>
+        <div class="sa-roads"></div>
+        <div class="sa-highway h1"></div>
+        <div class="sa-highway h2"></div>
+        <div class="sa-highway h3"></div>
+        <div class="sa-water"></div>
+        <div class="sa-zone"></div>
+        <div class="sa-pin">
+          <div class="sa-pin-knob"></div>
+          <span class="sa-pin-label">Brickell · Hub</span>
+        </div>
+      </div>
+
+      <!-- Search widget -->
+      <div class="sa-search">
+        <label class="sa-search-label" for="sa-input">Eligibility Checker</label>
+        <div class="sa-search-wrap">
+          <span class="sa-search-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
+          <input class="sa-search-input" id="sa-input" type="text" placeholder="Check your driveway eligibility..." autocomplete="off" />
+        </div>
+        <div class="sa-suggestions" id="sa-suggestions"></div>
+        <div class="sa-feedback" id="sa-feedback" role="status">
+          <span class="sa-fb-icon" id="sa-fb-icon"></span>
+          <div>
+            <p class="sa-fb-title" id="sa-fb-title"></p>
+            <p class="sa-fb-msg" id="sa-fb-msg"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust badges -->
+      <ul class="sa-badges" aria-label="Mobile capabilities">
+        <li class="sa-badge">
+          <span class="sa-badge-ico" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          </span>
+          <div>
+            <p class="sa-badge-name">100% Self-Powered</p>
+            <p class="sa-badge-desc">We bring our own electricity</p>
+          </div>
+        </li>
+        <li class="sa-badge">
+          <span class="sa-badge-ico" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+          </span>
+          <div>
+            <p class="sa-badge-name">Deionized Water</p>
+            <p class="sa-badge-desc">Spot-free rinse, no house tap</p>
+          </div>
+        </li>
+        <li class="sa-badge">
+          <span class="sa-badge-ico" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+          </span>
+          <div>
+            <p class="sa-badge-name">Fully Equipped Unit</p>
+            <p class="sa-badge-desc">Pro-grade tools in every van</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <p class="sa-note">Outside the radius? We accept select bookings up to 35 miles for an additional travel fee. Just reach out.</p>
+  </div>
+</section>
+
+<!-- ============== FAQ ============== -->
+<section class="faq" id="faq" aria-labelledby="faq-heading">
+  <div class="faq-mesh" aria-hidden="true"></div>
+  <div class="faq-grain" aria-hidden="true"></div>
+
+  <div class="faq-inner">
+    <header class="faq-header">
+      <h2 class="faq-h2" id="faq-heading">Answers in Precision</h2>
+      <p class="faq-sub">Everything you need to know about our elite mobile detailing process.</p>
+    </header>
+
+    <div class="faq-stack" id="faq-stack">
+      <div class="faq-panel open" data-faq="utilities">
+        <button class="faq-trigger" type="button" aria-expanded="true" aria-controls="faq-utilities" id="faq-trigger-utilities">
+          <span class="faq-q">Do I need to provide water or electricity?</span>
+          <span class="faq-toggle" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </span>
+        </button>
+        <div class="faq-body" id="faq-utilities" role="region" aria-labelledby="faq-trigger-utilities">
+          <div class="faq-body-inner">No. Our mobile units are fully self-sustained with professional-grade deionized water tanks and silent power generators. We only need access to your vehicle.</div>
+        </div>
+      </div>
+
+      <div class="faq-panel" data-faq="weather">
+        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-weather" id="faq-trigger-weather">
+          <span class="faq-q">What is your policy for rainy weather?</span>
+          <span class="faq-toggle" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </span>
+        </button>
+        <div class="faq-body" id="faq-weather" role="region" aria-labelledby="faq-trigger-weather">
+          <div class="faq-body-inner">Precision requires perfect conditions. If rain is forecasted, we will contact you 24 hours in advance to reschedule your session at no extra cost to ensure a flawless finish.</div>
+        </div>
+      </div>
+
+      <div class="faq-panel" data-faq="duration">
+        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-duration" id="faq-trigger-duration">
+          <span class="faq-q">How long does a typical session take?</span>
+          <span class="faq-toggle" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </span>
+        </button>
+        <div class="faq-body" id="faq-duration" role="region" aria-labelledby="faq-trigger-duration">
+          <div class="faq-body-inner">Quality cannot be rushed. Depending on your chosen package and vehicle size, a session typically lasts between 2 to 6 hours.</div>
+        </div>
+      </div>
+
+      <div class="faq-panel" data-faq="insurance">
+        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-insurance" id="faq-trigger-insurance">
+          <span class="faq-q">Are you insured to work on luxury and exotic vehicles?</span>
+          <span class="faq-toggle" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </span>
+        </button>
+        <div class="faq-body" id="faq-insurance" role="region" aria-labelledby="faq-trigger-insurance">
+          <div class="faq-body-inner">Absolutely. We are fully insured and specialized in handling high-value assets with surgical care and specialized tools.</div>
+        </div>
+      </div>
+
+      <div class="faq-panel" data-faq="cancel">
+        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-cancel" id="faq-trigger-cancel">
+          <span class="faq-q">Can I cancel or reschedule my appointment?</span>
+          <span class="faq-toggle" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </span>
+        </button>
+        <div class="faq-body" id="faq-cancel" role="region" aria-labelledby="faq-trigger-cancel">
+          <div class="faq-body-inner">Yes. You can reschedule or cancel up to 48 hours before your appointment through your confirmation email without any penalty.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="faq-cta">Still have questions? <a href="#contact">Contact our specialist</a></p>
+  </div>
+</section>
+
+<!-- ============== ABOUT / VISION ============== -->
+<section class="ab" id="about" aria-label="About Fluid Precision">
+  <!-- Hero Vision -->
+  <div class="ab-hero" id="ab-hero">
+    <div class="ab-hero-canvas" aria-hidden="true"></div>
+    <div class="ab-shape ab-shape-1" id="ab-shape-1" aria-hidden="true"></div>
+    <div class="ab-shape ab-shape-2" id="ab-shape-2" aria-hidden="true"></div>
+    <div class="ab-hero-overlay" aria-hidden="true"></div>
+    <div class="ab-hero-inner" id="ab-hero-text">
+      <p class="ab-hero-kicker">The Vision</p>
+      <h2 class="ab-hero-h2">A Decade of Surgical Precision</h2>
+      <p class="ab-hero-sub">We don't just clean; we engineer brilliance. Our vision is to merge advanced surface chemistry with a designer's eye to preserve the soul of every machine.</p>
+    </div>
+  </div>
+
+  <!-- Master Specialist -->
+  <div class="ab-spec" id="ab-spec">
+    <div class="ab-spec-inner">
+      <article class="ab-spec-card">
+        <div class="ab-spec-photo" aria-label="Master detailing specialist using a paint depth gauge">
+          <span class="ab-spec-photo-tag">Master Specialist</span>
+        </div>
+        <div class="ab-spec-body">
+          <p class="ab-spec-kicker">The Expertise</p>
+          <h3 class="ab-spec-h3">Behind the Precision</h3>
+          <ul class="ab-creds">
+            <li class="ab-cred">
+              <span class="ab-cred-ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>
+              </span>
+              <div>
+                <p class="ab-cred-label">10+ Years</p>
+                <p class="ab-cred-desc">in high-end automotive restoration</p>
+              </div>
+            </li>
+            <li class="ab-cred">
+              <span class="ab-cred-ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+              </span>
+              <div>
+                <p class="ab-cred-label">IDA Validated</p>
+                <p class="ab-cred-desc">International Detailing Association · Skills Validated Specialist</p>
+              </div>
+            </li>
+            <li class="ab-cred">
+              <span class="ab-cred-ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg>
+              </span>
+              <div>
+                <p class="ab-cred-label">Surface Engineering</p>
+                <p class="ab-cred-desc">philosophy: engineering over cleaning</p>
+              </div>
+            </li>
+          </ul>
+          <blockquote class="ab-quote">"Surface engineering over surface cleaning."</blockquote>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <!-- Pillars -->
+  <div class="ab-pillars">
+    <div class="ab-pillars-inner">
+      <header class="ab-pillars-header">
+        <p class="ab-pillars-kicker">Brand DNA</p>
+        <h3 class="ab-pillars-h3">Three Pillars of Execution</h3>
+      </header>
+      <div class="ab-pillar-grid">
+        <div class="ab-pillar">
+          <div class="ab-pillar-top">
+            <span class="ab-pillar-ico" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+            </span>
+            <span class="ab-pillar-num">01</span>
+          </div>
+          <h4 class="ab-pillar-name">Fluidity</h4>
+          <p class="ab-pillar-body">We adapt our chemical selection to match your vehicle's specific DNA — paint hardness, age, and finish all dictate our protocol.</p>
+        </div>
+        <div class="ab-pillar">
+          <div class="ab-pillar-top">
+            <span class="ab-pillar-ico" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/></svg>
+            </span>
+            <span class="ab-pillar-num">02</span>
+          </div>
+          <h4 class="ab-pillar-name">Precision</h4>
+          <p class="ab-pillar-body">Measured results using ultrasonic paint gauges and specialized swirl-detection lighting. Nothing left to guesswork.</p>
+        </div>
+        <div class="ab-pillar">
+          <div class="ab-pillar-top">
+            <span class="ab-pillar-ico" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/></svg>
+            </span>
+            <span class="ab-pillar-num">03</span>
+          </div>
+          <h4 class="ab-pillar-name">Innovation</h4>
+          <p class="ab-pillar-body">Utilizing the latest in graphene and ceramic nano-technology, refreshed quarterly to stay ahead of every formulation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commitment -->
+  <div class="ab-cmt">
+    <div class="ab-cmt-inner">
+      <h2 class="ab-cmt-h2">Not a Service.<br /><span class="accent">An Investment.</span></h2>
+      <p class="ab-cmt-copy">We treat every vehicle as a high-value asset. Our mission is to provide a mobile-first experience that prioritizes the longevity and aesthetic integrity of your automotive investment.</p>
+      <div class="ab-divider" aria-hidden="true">
+        <span class="line"></span><span class="dot"></span><span class="line"></span>
+      </div>
+      <a href="#book" class="ab-cmt-cta">
+        Begin Your Reservation
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer class="ft" aria-labelledby="footer-heading">
+  <h2 id="footer-heading" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Fluid Precision Footer</h2>
+
+  <div class="ft-inner">
+    <div class="ft-grid">
+      <!-- Col 1: Brand -->
+      <div>
+        <svg viewBox="0 0 200 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="height:26px; width:auto;">
+          <path d="M4 6h8m-8 10h6m-6 10h8M22 6v20m0-20h8m-8 10h6M38 26V6l10 20V6M58 6h8m-8 10h6m-6 10h8M76 6v20M84 6l5 14 5-14M104 26V6l10 20V6"
+                stroke="#C0C0C0" stroke-width="1.5" stroke-linecap="square"/>
+          <text x="124" y="22" font-family="Syncopate, sans-serif" font-size="12" font-weight="700" letter-spacing="3" fill="#C0C0C0">FLUID</text>
+        </svg>
+        <p class="ft-tagline">Engineering Brilliance.<br/>Surgical Precision.</p>
+        <p class="ft-mission">A 100% self-powered mobile elite service for owners who refuse to compromise on aesthetic integrity.</p>
+      </div>
+
+      <!-- Col 2: Nav -->
+      <nav aria-label="Footer navigation">
+        <h3 class="ft-col-h">Navigation</h3>
+        <ul class="ft-list">
+          <li><a class="ft-link" href="#">Home</a></li>
+          <li><a class="ft-link" href="#book">Booking</a></li>
+          <li><a class="ft-link" href="#about">About the Specialist</a></li>
+          <li><a class="ft-link" href="#service-area">Service Map</a></li>
+          <li><a class="ft-link" href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <!-- Col 3: Coverage -->
+      <div>
+        <h3 class="ft-col-h">Service Radius · Miami</h3>
+        <span class="ft-status">
+          <span class="dot" aria-hidden="true"></span>
+          Now accepting bookings
+        </span>
+        <ul class="ft-coverage">
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Brickell</li>
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Coral Gables</li>
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Sunny Isles</li>
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Key Biscayne</li>
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Aventura</li>
+          <li><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Pinecrest</li>
+        </ul>
+        <p class="ft-italic">Exotic & luxury assets prioritized.</p>
+      </div>
+
+      <!-- Col 4: Contact -->
+      <div>
+        <h3 class="ft-col-h">Specialist Contact</h3>
+        <a class="ft-link" href="mailto:precision@fluid.com" style="color: var(--silver);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          precision@fluid.com
+        </a>
+
+        <p class="ft-sub-h">Hours</p>
+        <p class="ft-hours">Mon – Sat · 8:00 AM – 6:00 PM<br/>Sundays by appointment</p>
+
+        <div class="ft-socials">
+          <a class="ft-social" href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </a>
+          <a class="ft-social" href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-footer -->
+  <div class="ft-sub">
+    <div class="ft-sub-inner">
+      <p class="ft-copyright">© 2026 Fluid Precision · Surgical Care for Automotive Assets</p>
+      <div class="ft-legal">
+        <a href="#">Privacy Policy</a>
+        <span class="sep" aria-hidden="true">|</span>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<button class="ft-top" id="ft-top" type="button" aria-label="Scroll back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+
+<!-- Success overlay -->
+<div class="bk-success" id="bk-success" role="dialog" aria-modal="true" aria-label="Booking confirmed">
+  <div class="bk-success-card">
+    <div class="bk-success-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-1.99-.46a2.93 2.93 0 0 0-3.18 1.95c-.21.66-.91 1.04-1.61.96l-.91-.13a2.93 2.93 0 0 0-3.07 1.92l-.84 2.85"/><path d="M3 7c0 2.5 2.5 2.5 2.5 5"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
+    </div>
+    <h3 class="bk-success-title">Booking Confirmed</h3>
+    <p class="bk-success-msg">Confirmation sent to <span id="bk-success-email" style="color: var(--silver);">your email</span>. Concierge will call within 30 minutes to confirm details.</p>
+    <p class="bk-success-meta" id="bk-success-meta">$0 · — · —</p>
+    <div class="bk-success-actions">
+      <a href="#" class="bk-success-btn glass">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/></svg>
+        Add to Calendar
+      </a>
+      <button class="bk-success-btn solid" id="bk-success-done">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Scroll shrink
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 24) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  }, { passive: true });
+
+  // Mobile menu
+  const ham = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  ham.addEventListener('click', () => {
+    const open = ham.dataset.open === 'true';
+    ham.dataset.open = String(!open);
+    ham.setAttribute('aria-expanded', String(!open));
+    ham.setAttribute('aria-label', !open ? 'Close menu' : 'Open menu');
+    menu.classList.toggle('open', !open);
+    document.body.style.overflow = !open ? 'hidden' : '';
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && ham.dataset.open === 'true') ham.click();
+  });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    if (ham.dataset.open === 'true') ham.click();
+  }));
+
+  // Before/After slider
+  (() => {
+    const slider = document.getElementById('ba-slider');
+    const handle = document.getElementById('ba-handle');
+    const knob = document.getElementById('ba-knob');
+    const beforeWrap = document.getElementById('ba-before-wrap');
+    if (!slider || !handle || !knob || !beforeWrap) return;
+
+    let dragging = false;
+    let pos = 50;
+    let raf = 0;
+
+    const apply = () => {
+      handle.style.left = pos + '%';
+      beforeWrap.style.clipPath = `inset(0 ${100 - pos}% 0 0)`;
+      knob.setAttribute('aria-valuenow', String(Math.round(pos)));
+    };
+
+    const setFromX = (clientX) => {
+      const rect = slider.getBoundingClientRect();
+      pos = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(apply);
+    };
+
+    const onDown = (e) => {
+      dragging = true;
+      slider.classList.add('dragging');
+      setFromX(e.clientX);
+    };
+    const onMove = (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      setFromX(e.clientX);
+    };
+    const onUp = () => {
+      dragging = false;
+      slider.classList.remove('dragging');
+    };
+
+    slider.addEventListener('pointerdown', onDown);
+    knob.addEventListener('pointerdown', (e) => { e.stopPropagation(); dragging = true; slider.classList.add('dragging'); });
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+
+    knob.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { pos = Math.max(0, pos - 5); apply(); }
+      if (e.key === 'ArrowRight') { pos = Math.min(100, pos + 5); apply(); }
+      if (e.key === 'Home') { pos = 0; apply(); }
+      if (e.key === 'End') { pos = 100; apply(); }
+    });
+
+    // Tab switch
+    const vehicleEl = document.getElementById('pf-vehicle');
+    const serviceEl = document.getElementById('pf-service');
+    document.querySelectorAll('.pf-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.pf-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        vehicleEl.textContent = tab.dataset.vehicle;
+        serviceEl.textContent = tab.dataset.service;
+      });
+    });
+  })();
+
+  // Testimonials carousel (mobile)
+  (() => {
+    const grid = document.getElementById('t-grid');
+    const track = document.getElementById('t-track');
+    const prev = document.getElementById('t-prev');
+    const next = document.getElementById('t-next');
+    if (!grid || !track || !prev || !next) return;
+
+    grid.querySelectorAll('.tcard').forEach(card => {
+      const slide = document.createElement('div');
+      slide.className = 'tcard-slide';
+      slide.appendChild(card.cloneNode(true));
+      track.appendChild(slide);
+    });
+
+    const updateNav = () => {
+      prev.disabled = track.scrollLeft <= 8;
+      next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
+    };
+    const scrollByDir = (dir) => {
+      const slide = track.querySelector('.tcard-slide');
+      const step = slide ? slide.offsetWidth + 20 : track.clientWidth * 0.85;
+      track.scrollBy({ left: dir * step, behavior: 'smooth' });
+    };
+    prev.addEventListener('click', () => scrollByDir(-1));
+    next.addEventListener('click', () => scrollByDir(1));
+    track.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('resize', updateNav);
+    requestAnimationFrame(updateNav);
+  })();
+
+  // ============== BOOKING ENGINE ==============
+  (() => {
+    const VEHICLE_DUR = { sedan: 0, suv: 0.5, truck: 0.75, exotic: 0.5 };
+    const VEHICLE_LABEL = { sedan: 'Sedan', suv: 'SUV', truck: 'Truck', exotic: 'Exotic' };
+    const ADDRESSES = [
+      '1200 Wilshire Blvd, Los Angeles, CA',
+      '850 5th Ave, New York, NY',
+      '2500 Brickell Ave, Miami, FL',
+      '1100 Lake Shore Dr, Chicago, IL',
+      '401 Sansome St, San Francisco, CA',
+    ];
+
+    const state = {
+      step: 0,
+      vehicle: null,
+      vehicleAdd: 0,
+      brand: '',
+      model: '',
+      pkg: null,
+      pkgBase: 0,
+      pkgDur: 0,
+      addons: {},
+      address: '',
+      date: '',
+      time: '',
+      name: '',
+      email: '',
+      phone: '',
+    };
+
+    const NEXT_LABELS = [
+      'Next: Choose Package',
+      'Next',
+      'Next: Location & Time',
+      'Final Step: Contact',
+      'Reserve Your Appointment',
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const steps = document.querySelectorAll('.bk-step');
+    const dots = document.querySelectorAll('#bk-steps .bk-step-dot');
+    const lines = document.querySelectorAll('#bk-steps .bk-step-line');
+    const progressBar = $('bk-progress-bar');
+    const backBtn = $('bk-back');
+    const nextBtn = $('bk-next');
+    const nextLabel = $('bk-next-label');
+    const skipBtn = $('bk-skip');
+
+    function totals() {
+      const pkgPrice = state.pkgBase || 0;
+      const addonsTotal = Object.values(state.addons).reduce((s, a) => s + a.price, 0);
+      const addonsDur = Object.values(state.addons).reduce((s, a) => s + a.dur, 0);
+      const total = pkgPrice + state.vehicleAdd + addonsTotal;
+      const dur = (state.pkgDur || 0) + (state.vehicle ? VEHICLE_DUR[state.vehicle] : 0) + addonsDur;
+      return { total: pkgPrice ? total : 0, dur: pkgPrice ? dur : 0 };
+    }
+
+    function summary() {
+      const parts = [];
+      if (state.pkg) parts.push(state.pkg.charAt(0).toUpperCase() + state.pkg.slice(1));
+      if (state.vehicle) parts.push(VEHICLE_LABEL[state.vehicle]);
+      const c = Object.keys(state.addons).length;
+      if (c) parts.push(`+${c} add-on${c > 1 ? 's' : ''}`);
+      return parts.join(' · ') || 'Configure your booking';
+    }
+
+    function canAdvance() {
+      if (state.step === 0) return state.vehicle && state.brand.trim() && state.model.trim();
+      if (state.step === 1) return !!state.pkg;
+      if (state.step === 2) return true;
+      if (state.step === 3) return state.address.trim() && state.date && state.time;
+      if (state.step === 4) {
+        const emailOk = /^\S+@\S+\.\S+$/.test(state.email);
+        return state.name.trim() && emailOk && state.phone.trim().length >= 7;
+      }
+      return false;
+    }
+
+    function render() {
+      // Steps visibility
+      steps.forEach((el, i) => el.classList.toggle('active', i === state.step));
+
+      // Dots / lines
+      dots.forEach((d, i) => {
+        d.classList.toggle('done', i < state.step);
+        d.classList.toggle('active', i === state.step);
+        d.innerHTML = i < state.step
+          ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          : (i + 1);
+      });
+      lines.forEach((l, i) => l.classList.toggle('done', i < state.step));
+
+      // Progress bar
+      progressBar.style.width = (((state.step + 1) / 5) * 100) + '%';
+
+      // Back btn
+      backBtn.style.visibility = state.step > 0 ? 'visible' : 'hidden';
+
+      // Next btn label + style
+      nextLabel.textContent = NEXT_LABELS[state.step];
+      const isFinal = state.step === 4;
+      const isAddons = state.step === 2;
+      nextBtn.classList.toggle('solid', isFinal || isAddons);
+      nextBtn.disabled = !canAdvance() && !isFinal;
+
+      // Skip btn
+      skipBtn.style.display = isAddons ? 'inline' : 'none';
+
+      // Bottom summary + total
+      const { total, dur } = totals();
+      $('bk-total-val').textContent = '$' + total;
+      $('bk-total-dur').textContent = dur ? `~${dur.toFixed(1)} hrs` : '';
+      $('bk-bottom-summary').textContent = summary();
+
+      // Customized hint
+      const cust = $('bk-customized');
+      if (state.vehicle) {
+        cust.style.display = 'inline-flex';
+        $('bk-customized-veh').textContent = VEHICLE_LABEL[state.vehicle];
+      } else {
+        cust.style.display = 'none';
+      }
+
+      // Update package prices with vehicle multiplier
+      document.querySelectorAll('.bk-pkg-price').forEach(el => {
+        const base = Number(el.dataset.base);
+        el.textContent = '$' + (base + state.vehicleAdd);
+      });
+
+      // Step 5 summary
+      if (state.step === 4) {
+        const list = $('bk-summary-list');
+        list.innerHTML = '';
+        if (state.vehicle) {
+          const t = `${VEHICLE_LABEL[state.vehicle]}${state.brand ? ' · ' + state.brand : ''}${state.model ? ' ' + state.model : ''}`;
+          list.innerHTML += `<li><span>${t}</span><span style="color:rgba(192,192,192,0.7);">+$${state.vehicleAdd}</span></li>`;
+        }
+        if (state.pkg) {
+          list.innerHTML += `<li><span>${state.pkg.charAt(0).toUpperCase() + state.pkg.slice(1)} Package</span><span>$${state.pkgBase}</span></li>`;
+        }
+        Object.values(state.addons).forEach(a => {
+          list.innerHTML += `<li><span>${a.label}</span><span>+$${a.price}</span></li>`;
+        });
+        if (state.date && state.time) {
+          list.innerHTML += `<li style="color:rgba(192,192,192,0.7);"><span>${state.date} at ${state.time}</span><span>${dur.toFixed(1)} hrs</span></li>`;
+        }
+        if (state.address) {
+          list.innerHTML += `<li style="color:rgba(192,192,192,0.7); font-size:12px;"><span>${state.address}</span><span></span></li>`;
+        }
+        $('bk-summary-total-val').textContent = '$' + total;
+      }
+    }
+
+    // Vehicle tiles
+    document.querySelectorAll('.bk-vehicle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bk-vehicle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.vehicle = btn.dataset.vehicle;
+        state.vehicleAdd = Number(btn.dataset.add);
+        render();
+      });
+    });
+    $('bk-brand').addEventListener('input', e => { state.brand = e.target.value; render(); });
+    $('bk-model').addEventListener('input', e => { state.model = e.target.value; render(); });
+
+    // Package tiles
+    document.querySelectorAll('.bk-pkg').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bk-pkg').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.pkg = btn.dataset.pkg;
+        state.pkgBase = Number(btn.dataset.base) + state.vehicleAdd;
+        state.pkgDur = Number(btn.dataset.dur);
+        render();
+      });
+    });
+
+    // Addon tiles
+    document.querySelectorAll('.bk-addon').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.addon;
+        const price = Number(btn.dataset.price);
+        const dur = Number(btn.dataset.dur);
+        const label = btn.querySelector('.bk-addon-name').textContent;
+        if (state.addons[id]) {
+          delete state.addons[id];
+          btn.classList.remove('active');
+        } else {
+          state.addons[id] = { price, dur, label };
+          btn.classList.add('active');
+        }
+        render();
+      });
+    });
+
+    // Address autocomplete
+    const addrInput = $('bk-address');
+    const sugg = $('bk-suggestions');
+    addrInput.addEventListener('input', e => {
+      state.address = e.target.value;
+      const q = state.address.toLowerCase();
+      const matches = ADDRESSES.filter(a => a.toLowerCase().includes(q));
+      if (q && matches.length) {
+        sugg.innerHTML = matches.map(a => `<button type="button" class="bk-sugg-item" data-addr="${a}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>${a}</button>`).join('');
+          sugg.classList.add('open');
+          sugg.querySelectorAll('.bk-sugg-item').forEach(b => {
+            b.addEventListener('mousedown', () => {
+              addrInput.value = b.dataset.addr;
+              state.address = b.dataset.addr;
+              sugg.classList.remove('open');
+              render();
+            });
+          });
+      } else {
+        sugg.classList.remove('open');
+      }
+      render();
+    });
+    addrInput.addEventListener('blur', () => setTimeout(() => sugg.classList.remove('open'), 150));
+
+    // Days
+    const daysWrap = $('bk-days');
+    const today = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const iso = d.toISOString().slice(0, 10);
+      const wd = d.toLocaleDateString(undefined, { weekday: 'short' });
+      const mo = d.toLocaleDateString(undefined, { month: 'short' });
+      const btn = document.createElement('button');
+      btn.className = 'bk-day';
+      btn.dataset.date = iso;
+      btn.innerHTML = `<span class="bk-day-wd">${wd}</span><span class="bk-day-num">${d.getDate()}</span><span class="bk-day-mo">${mo}</span>`;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bk-day').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.date = iso;
+        render();
+      });
+      daysWrap.appendChild(btn);
+    }
+
+    // Times
+    document.querySelectorAll('.bk-time').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bk-time').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.time = btn.dataset.time;
+        render();
+      });
+    });
+
+    // Contact inputs
+    $('bk-name').addEventListener('input', e => { state.name = e.target.value; render(); });
+    $('bk-email').addEventListener('input', e => { state.email = e.target.value; render(); });
+    $('bk-phone').addEventListener('input', e => { state.phone = e.target.value; render(); });
+
+    // Navigation
+    backBtn.addEventListener('click', () => {
+      if (state.step > 0) { state.step--; render(); }
+    });
+    nextBtn.addEventListener('click', () => {
+      if (state.step === 4) {
+        if (canAdvance()) {
+          const { total, dur } = totals();
+          $('bk-success-email').textContent = state.email;
+          $('bk-success-meta').textContent = `$${total} · ${state.date} · ${state.time}`;
+          $('bk-success').classList.add('open');
+        }
+        return;
+      }
+      if (canAdvance()) {
+        state.step++;
+        render();
+      }
+    });
+    skipBtn.addEventListener('click', () => {
+      Object.keys(state.addons).forEach(k => delete state.addons[k]);
+      document.querySelectorAll('.bk-addon').forEach(b => b.classList.remove('active'));
+      state.step = 3;
+      render();
+    });
+
+    $('bk-success-done').addEventListener('click', () => {
+      $('bk-success').classList.remove('open');
+      // Reset
+      Object.assign(state, {
+        step: 0, vehicle: null, vehicleAdd: 0, brand: '', model: '',
+        pkg: null, pkgBase: 0, pkgDur: 0, addons: {},
+        address: '', date: '', time: '', name: '', email: '', phone: '',
+      });
+      document.querySelectorAll('.bk-vehicle, .bk-pkg, .bk-addon, .bk-day, .bk-time').forEach(b => b.classList.remove('active'));
+      ['bk-brand','bk-model','bk-address','bk-name','bk-email','bk-phone'].forEach(id => document.getElementById(id).value = '');
+      render();
+    });
+
+    render();
+  })();
+
+  // ============== SERVICE AREA ==============
+  (() => {
+    // Mock address db with miles from Brickell hub
+    const ADDRS = [
+      { addr: '1200 Brickell Bay Dr, Miami, FL', miles: 0.4 },
+      { addr: '301 Ocean Dr, Miami Beach, FL', miles: 4.2 },
+      { addr: '550 NW 42nd Ave, Miami, FL', miles: 5.8 },
+      { addr: '17001 Collins Ave, Sunny Isles Beach, FL', miles: 14.6 },
+      { addr: '20505 SW 112th Ave, Cutler Bay, FL', miles: 18.7 },
+      { addr: '2000 NW 87th Ave, Doral, FL', miles: 9.3 },
+      { addr: '4441 Collins Ave, Miami Beach, FL', miles: 6.5 },
+      { addr: '8888 SW 136th St, Pinecrest, FL', miles: 11.4 },
+      { addr: '500 NE 3rd Ave, Fort Lauderdale, FL', miles: 27.8 },
+      { addr: '350 Royal Palm Way, Palm Beach, FL', miles: 65.2 },
+      { addr: '888 SW 1st Ave, Miami, FL', miles: 0.9 },
+      { addr: '5757 Collins Ave, Miami Beach, FL', miles: 7.1 },
+    ];
+
+    const input = document.getElementById('sa-input');
+    const sugg = document.getElementById('sa-suggestions');
+    const fb = document.getElementById('sa-feedback');
+    const fbIcon = document.getElementById('sa-fb-icon');
+    const fbTitle = document.getElementById('sa-fb-title');
+    const fbMsg = document.getElementById('sa-fb-msg');
+    const frame = document.getElementById('sa-frame');
+    if (!input) return;
+
+    const renderSugg = (q) => {
+      const ql = q.toLowerCase().trim();
+      const matches = ql ? ADDRS.filter(a => a.addr.toLowerCase().includes(ql)).slice(0, 6) : [];
+      if (!matches.length) {
+        sugg.classList.remove('open');
+        return;
+      }
+      sugg.innerHTML = matches.map(m => `
+        <button type="button" class="sa-sugg-item" data-addr="${m.addr}" data-miles="${m.miles}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>${m.addr}</span>
+          <span class="miles">${m.miles.toFixed(1)} mi</span>
+        </button>
+      `).join('');
+      sugg.classList.add('open');
+      sugg.querySelectorAll('.sa-sugg-item').forEach(btn => {
+        btn.addEventListener('mousedown', e => {
+          e.preventDefault();
+          const addr = btn.dataset.addr;
+          const miles = Number(btn.dataset.miles);
+          input.value = addr;
+          sugg.classList.remove('open');
+          showFeedback(miles, addr);
+        });
+      });
+    };
+
+    const showFeedback = (miles, addr) => {
+      fb.classList.remove('in', 'out');
+      if (miles <= 20) {
+        fb.classList.add('show', 'in');
+        fbIcon.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        fbTitle.textContent = "You're in the Zone";
+        fbMsg.innerHTML = `We'll bring the shine to you · ${miles.toFixed(1)} mi from hub`;
+      } else {
+        fb.classList.add('show', 'out');
+        fbIcon.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+        fbTitle.textContent = `Just Outside · ${miles.toFixed(1)} mi`;
+        fbMsg.innerHTML = `You're a bit far, but we might still make it. <a href="#contact">Contact for a custom quote</a>`;
+      }
+      // Soft zoom
+      frame.classList.add('zoom');
+      setTimeout(() => frame.classList.remove('zoom'), 1400);
+    };
+
+    input.addEventListener('input', e => {
+      fb.classList.remove('show');
+      renderSugg(e.target.value);
+    });
+    input.addEventListener('focus', e => renderSugg(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => sugg.classList.remove('open'), 150));
+  })();
+
+  // ============== FAQ ==============
+  (() => {
+    const stack = document.getElementById('faq-stack');
+    if (!stack) return;
+    stack.querySelectorAll('.faq-trigger').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const panel = trigger.closest('.faq-panel');
+        const isOpen = panel.classList.contains('open');
+        stack.querySelectorAll('.faq-panel').forEach(p => {
+          p.classList.remove('open');
+          p.querySelector('.faq-trigger').setAttribute('aria-expanded', 'false');
+        });
+        if (!isOpen) {
+          panel.classList.add('open');
+          trigger.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  })();
+
+  // ============== FOOTER — Back to top ==============
+  (() => {
+    const btn = document.getElementById('ft-top');
+    if (!btn) return;
+    const onScroll = () => {
+      btn.classList.toggle('show', window.scrollY > 600);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  })();
+
+  // ============== ABOUT — Parallax ==============
+  (() => {
+    const hero = document.getElementById('ab-hero');
+    const s1 = document.getElementById('ab-shape-1');
+    const s2 = document.getElementById('ab-shape-2');
+    const text = document.getElementById('ab-hero-text');
+    const spec = document.getElementById('ab-spec');
+    if (!hero || !s1 || !s2 || !spec) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const rect = hero.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const progress = Math.max(-1, Math.min(1, (rect.top + rect.height / 2 - vh / 2) / vh));
+      // Inverse: scrolling down → progress goes from 1 → -1
+      const p = -progress;
+      s1.style.transform = `translateY(${p * 40}px) rotate(-8deg)`;
+      s2.style.transform = `translateY(${p * -30}px) rotate(12deg)`;
+      if (text) text.style.transform = `translateY(${p * 18}px)`;
+
+      // Specialist card subtle drift
+      const specRect = spec.getBoundingClientRect();
+      const specP = Math.max(-1, Math.min(1, (specRect.top + specRect.height / 2 - vh / 2) / vh));
+      const card = spec.querySelector('.ab-spec-card');
+      if (card) card.style.transform = `translateY(${specP * 24}px)`;
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(update);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  })();
+</script>
+</body>
+</html>
